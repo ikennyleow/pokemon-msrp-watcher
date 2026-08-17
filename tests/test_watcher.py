@@ -220,3 +220,25 @@ def test_digest_signature_changes_on_price_change():
     items_a = [{"url": "https://example.com/1", "price": 10.0}]
     items_b = [{"url": "https://example.com/1", "price": 12.0}]
     assert w._digest_signature(items_a) != w._digest_signature(items_b)
+
+
+# ---- classify_deal() -------------------------------------------------------
+def test_classify_deal_lazada_self_match_is_skipped():
+    # Regression: Lazada IS the reference-price source, so its own listings
+    # trivially equal their own catalog price (pct_above == 0) on every
+    # run - flooded 28 individual "deal" alerts on the first real run
+    # before this was fixed.
+    assert w.classify_deal("lazada", 0.0) == "skip"
+
+
+def test_classify_deal_lazada_requires_strict_discount():
+    assert w.classify_deal("lazada", -5.0) == "deal"
+    assert w.classify_deal("lazada", 5.0) == "above"
+
+
+def test_classify_deal_other_retailers_allow_exact_msrp_match():
+    # An independent seller landing exactly at MSRP is a genuine, meaningful
+    # coincidence worth flagging - unlike Lazada checking itself.
+    assert w.classify_deal("toysrus", 0.0) == "deal"
+    assert w.classify_deal("dxcollection", -5.0) == "deal"
+    assert w.classify_deal("carousell", 5.0) == "above"

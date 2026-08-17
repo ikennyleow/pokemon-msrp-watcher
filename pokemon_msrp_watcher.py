@@ -713,6 +713,26 @@ def process_listing(raw: dict, catalogs: dict[str, list[dict]]) -> dict | None:
     }
 
 
+def classify_deal(parser_name: str, pct_above: float) -> str:
+    """Returns "deal" (individual alert), "above" (digest), or "skip".
+
+    Lazada IS the English reference-price source (§7.1) - when checked as
+    an ordinary retailer too, its own listings trivially equal their own
+    catalog price (pct_above == 0) on every run, since both sides come
+    from the same live scrape. That's not a deal (not a discount) and not
+    "above MSRP" either (it IS the MSRP) - caught live during e2e testing,
+    where this flooded 28 individual "deal" alerts on the very first run.
+    Only a STRICT discount below its own reference is a genuine, alertable
+    deal for Lazada. Other retailers keep <= 0 as a deal, since an
+    independent seller genuinely landing exactly at MSRP is a real
+    coincidence worth flagging."""
+    if parser_name == "lazada":
+        if pct_above == 0:
+            return "skip"
+        return "deal" if pct_above < 0 else "above"
+    return "deal" if pct_above <= 0 else "above"
+
+
 # ======================================================================
 # Telegram (PRD §8.7)
 # ======================================================================
@@ -808,7 +828,11 @@ def _run_all_targets(state: dict) -> None:
             if item is None:
                 continue
 
-            if item["pct_above"] <= 0:
+            verdict = classify_deal(target.parser, item["pct_above"])
+            if verdict == "skip":
+                continue
+
+            if verdict == "deal":
                 key = f"{item['retailer']}:{item['url']}"
                 if state["seen"].get(key) == item["price"]:
                     continue  # already alerted at this price
