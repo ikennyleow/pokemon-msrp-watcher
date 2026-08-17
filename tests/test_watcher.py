@@ -1,0 +1,222 @@
+"""
+Unit tests for the classification, language-detection, fuzzy-matching, and
+notification logic - no network calls. Several of these are regression
+tests for real bugs caught live during development (see comments).
+"""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+import pokemon_msrp_watcher as w  # noqa: E402
+
+
+# ---- classify() ----------------------------------------------------------
+def test_classify_word_boundary_and_plurals():
+    assert w.classify("Pokemon Destiny Deck Box") is None  # "tin" must not match inside "destiny"
+    assert w.classify("Pokemon Satin Finish Playmat") is None
+    assert w.classify("Pokemon Scarlet & Violet Tin") == "Tin"
+    assert w.classify("Pokemon Scarlet & Violet Tins (2-pack)") == "Tin"
+    assert w.classify("Pokemon TCG Chaos Rising 6 Booster Boxes") == "Booster box"
+    assert w.classify("Random Toy Story Figure") is None  # no "pokemon" mention
+
+
+def test_classify_checks_most_specific_category_first():
+    assert w.classify("Pokemon Booster Bundle") == "Booster bundle"
+    assert w.classify("Pokemon Single Booster Pack") == "Single booster pack"
+
+
+def test_classify_booster_display_box():
+    # Regression: "Display" sitting between "Booster" and "Box" broke the
+    # exact-phrase match and fell through to the generic "booster" ->
+    # "Single booster pack" fallback, misclassifying a real box listing.
+    assert w.classify("Pokemon Mega Evolution: Perfect Order Boosters Display Box") == "Booster box"
+    assert w.classify("Pokemon Chaos Rising Booster Display Box") == "Booster box"
+
+
+# ---- detect_language() ----------------------------------------------------
+def test_detect_language():
+    assert w.detect_language("Pokemon TCG - Abyss Eye Japanese Booster Box") == "japanese"
+    assert w.detect_language("Pokemon TCG: MEGA Inferno X (m2) JP Booster Box") == "japanese"
+    assert w.detect_language("Pokemon Trading Card Game: Chaos Rising Elite Trainer Box") == "english"
+
+
+# ---- find_catalog_match() --------------------------------------------------
+JP_CATALOG = [
+    {"title": "Abyss Eye", "category": "Booster box", "price": 48.24},
+    {"title": "Black Bolt", "category": "Booster box", "price": 69.95},
+]
+ENG_CATALOG = [
+    {
+        "title": "Pokémon Trading Card Game: Mega Evolution: Chaos Rising Pokémon Center Elite Trainer Box [Limit 2 per person]",
+        "category": "Elite Trainer Box",
+        "price": 109.90,
+    },
+]
+
+
+def test_find_catalog_match_substring_case():
+    # Regression: plain SequenceMatcher.ratio() on full strings scored this
+    # ~0.30 (listing has lots of extra words) despite "abyss eye" being a
+    # clean substring - the fix uses substring containment / word-recall
+    # after stripping shared boilerplate.
+    match = w.find_catalog_match(
+        "Pokemon TCG – Abyss Eye Japanese Booster Box Shrinked", "Booster box", JP_CATALOG
+    )
+    assert match is not None
+    assert match["title"] == "Abyss Eye"
+    assert match["price"] == 48.24
+
+
+def test_find_catalog_match_noisy_catalog_entry():
+    # Regression: the CATALOG entry itself was noisy ("[Limit 2 per
+    # person]", "Pokémon Center"), which the original word-recall scoring
+    # assumed only happened on the listing side - fixed by stripping known
+    # boilerplate from both sides before comparing.
+    match = w.find_catalog_match(
+        "Pokemon Trading Card Game: Mega Evolution: Chaos Rising Elite Trainer Box",
+        "Elite Trainer Box",
+        ENG_CATALOG,
+    )
+    assert match is not None
+    assert match["price"] == 109.90
+
+
+def test_find_catalog_match_rejects_unrelated():
+    match = w.find_catalog_match(
+        "Pokemon TCG Totally Different Made Up Set Booster Box", "Booster box", JP_CATALOG
+    )
+    assert match is None
+
+
+def test_find_catalog_match_category_must_match_exactly():
+    # An ETB listing must never match a Booster box catalog entry, even if
+    # the set name would otherwise be similar.
+    match = w.find_catalog_match("Pokemon Abyss Eye Elite Trainer Box", "Elite Trainer Box", JP_CATALOG)
+    assert match is None
+
+
+# ---- _clean_url() ----------------------------------------------------------
+def test_clean_url_strips_tracking_params_for_dedup_stability():
+    # Regression: Carousell embeds a fresh per-request tracking token in
+    # every listing URL, so the same physical listing got a different dedup
+    # key - and re-alerted as "new" - on every single run.
+    url1 = "https://www.carousell.sg/p/some-listing-123/?t-id=AAA&t-referrer_request_id=111"
+    url2 = "https://www.carousell.sg/p/some-listing-123/?t-id=BBB&t-referrer_request_id=222"
+    assert w._clean_url(url1) == w._clean_url(url2) == "https://www.carousell.sg/p/some-listing-123/"
+
+
+# ---- process_listing() -----------------------------------------------------
+CATALOGS = {"english": ENG_CATALOG, "japanese": JP_CATALOG}
+
+
+def test_process_listing_at_or_below_msrp():
+    raw = {
+        "title": "Pokemon TCG – Abyss Eye Japanese Booster Box Shrinked",
+        "price": 40.0,
+        "url": "https://example.com/a?tracking=1",
+        "in_stock": True,
+        "target_name": "Test Retailer",
+    }
+    item = w.process_listing(raw, CATALOGS)
+    assert item is not None
+    assert item["pct_above"] < 0
+    assert item["reference_price"] == 48.24
+    assert item["url"] == "https://example.com/a"  # tracking param stripped
+
+
+def test_process_listing_above_msrp():
+    raw = {
+        "title": "Pokemon TCG – Abyss Eye Japanese Booster Box Shrinked",
+        "price": 100.0,
+        "url": "https://example.com/b",
+        "in_stock": True,
+        "target_name": "Test Retailer",
+    }
+    item = w.process_listing(raw, CATALOGS)
+    assert item is not None
+    assert item["pct_above"] > 0
+
+
+def test_process_listing_out_of_stock_returns_none():
+    raw = {
+        "title": "Pokemon TCG – Abyss Eye Japanese Booster Box",
+        "price": 10.0,
+        "url": "https://example.com/c",
+        "in_stock": False,
+        "target_name": "Test Retailer",
+    }
+    assert w.process_listing(raw, CATALOGS) is None
+
+
+def test_process_listing_no_category_match_returns_none():
+    raw = {
+        "title": "Pokemon Plush Toy Figure",
+        "price": 10.0,
+        "url": "https://example.com/d",
+        "in_stock": True,
+        "target_name": "Test Retailer",
+    }
+    assert w.process_listing(raw, CATALOGS) is None
+
+
+def test_process_listing_no_catalog_match_returns_none():
+    raw = {
+        "title": "Pokemon TCG Totally Unrelated Set Booster Box",
+        "price": 10.0,
+        "url": "https://example.com/e",
+        "in_stock": True,
+        "target_name": "Test Retailer",
+    }
+    assert w.process_listing(raw, CATALOGS) is None
+
+
+# ---- Telegram message building (HTML escaping) -----------------------------
+def test_individual_message_escapes_html_special_chars():
+    # Regression: a real listing titled "<Confirmed 17 May> Booster Box..."
+    # crashed a prior build's Telegram send with a 400 error (unescaped <>
+    # parsed as markup).
+    item = {
+        "title": "<Confirmed 17 May> Booster Box Pitch Black Pokemon",
+        "category": "Booster box",
+        "language": "japanese",
+        "price": 90.0,
+        "reference_price": 100.0,
+        "url": "https://example.com/f?a=1&b=2",
+        "retailer": "Test & Co",
+    }
+    message = w._build_individual_message(item)
+    assert "<Confirmed" not in message  # raw unescaped tag must not appear
+    assert "&lt;Confirmed" in message
+    assert "&amp;" in message  # url's raw & must be escaped too
+
+
+def test_digest_message_caps_and_shows_remaining_count():
+    items = [
+        {
+            "title": f"Item {i}",
+            "url": f"https://example.com/{i}",
+            "price": 100.0 + i,
+            "reference_price": 100.0,
+            "pct_above": float(i),
+        }
+        for i in range(8)
+    ]
+    message = w._build_digest_message("Test Retailer", items)
+    assert message.count("• ") == w.DIGEST_TOP_N
+    assert "+3 more" in message
+
+
+def test_digest_signature_stable_regardless_of_order():
+    items_a = [
+        {"url": "https://example.com/1", "price": 10.0},
+        {"url": "https://example.com/2", "price": 20.0},
+    ]
+    items_b = list(reversed(items_a))
+    assert w._digest_signature(items_a) == w._digest_signature(items_b)
+
+
+def test_digest_signature_changes_on_price_change():
+    items_a = [{"url": "https://example.com/1", "price": 10.0}]
+    items_b = [{"url": "https://example.com/1", "price": 12.0}]
+    assert w._digest_signature(items_a) != w._digest_signature(items_b)
