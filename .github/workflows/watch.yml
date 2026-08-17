@@ -1,0 +1,50 @@
+name: Pokemon MSRP Watcher
+
+on:
+  schedule:
+    # Unified polling - no per-retailer tiering in this version (PRD §9).
+    # Every 30 minutes: fast enough to catch a restock before it sells out,
+    # without excessive GitHub Actions usage (2 catalog fetches, most via
+    # Playwright, are the bulk of runtime; retailer checks are cheap).
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install Playwright Chromium
+        run: python3 -m playwright install --with-deps chromium
+
+      - name: Run watcher
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 pokemon_msrp_watcher.py
+
+      - name: Save state and catalog cache
+        run: |
+          git config user.name "msrp-watcher-bot"
+          git config user.email "actions@github.com"
+          git add state.json catalog_cache.json
+          git diff --staged --quiet || git commit -m "update state [skip ci]"
+          git pull --rebase origin main
+          git push
