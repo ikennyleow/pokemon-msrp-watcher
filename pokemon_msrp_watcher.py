@@ -465,6 +465,12 @@ def get_catalog(language: str) -> list[dict]:
     if is_stale:
         try:
             fresh = fetch_english_catalog() if language == "english" else build_japanese_catalog()
+            if not fresh:
+                # An empty scrape is a failure (blocked page, changed markup),
+                # not "the store sells nothing". Caught live Nov 2026: Lazada
+                # returned nothing from a GitHub runner and the good cached
+                # English catalog was overwritten with an empty list.
+                raise RuntimeError("scrape returned 0 entries")
             cache[language] = {"fetched_at": now, "catalog": fresh}
             _save_catalog_cache(cache)
             return fresh
@@ -891,11 +897,13 @@ def _run_all_targets(state: dict) -> None:
             continue
 
         above_msrp_items = []
+        matched = 0
 
         for raw in raw_listings:
             item = process_listing(raw, catalogs)
             if item is None:
                 continue
+            matched += 1
 
             verdict = classify_deal(target.parser, item["pct_above"], item["language"], resale_deal_pct)
             if verdict == "skip":
@@ -919,6 +927,10 @@ def _run_all_targets(state: dict) -> None:
                 print(f"[alert] {key} @ {item['price']} ({item['language']}, {item['pct_above']:+.1f}% vs ref)")
             else:
                 above_msrp_items.append(item)
+
+        # One line per target so a site that silently returns nothing (blocked,
+        # markup changed) is visible in the run log.
+        print(f"[target] {target.name}: {len(raw_listings)} listings, {matched} matched a reference price")
 
         if above_msrp_items:
             signature = _digest_signature(above_msrp_items)
