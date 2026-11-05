@@ -16,6 +16,12 @@ It checks:
   link. Empty binders, sealed product, graded cards, wanted ads and dealers'
   keyword-stuffed titles are filtered out.
 
+- **Daily price check** (from 9am, once a day): reads your tracker holdings
+  (read-only) and your @ikayley listings, then sends one message: what to cut
+  or raise on the listings you have up, and the five most valuable unlisted
+  holdings with today's lowest Carousell ask and market value. Needs your
+  tracker password once: `./mac/add_tracker_password.sh`.
+
 ## Set up (once, about 5 minutes)
 
 In Terminal:

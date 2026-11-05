@@ -1478,6 +1478,9 @@ def run() -> None:
         _run_all_targets(state)
         if MODE == "local":
             run_buyout_searches(state)
+            import sell_digest  # Mac only: daily sell-side price check
+
+            sell_digest.run_sell_digest(state)
     finally:
         save_state(state)  # belt-and-suspenders: never lose progress
 
