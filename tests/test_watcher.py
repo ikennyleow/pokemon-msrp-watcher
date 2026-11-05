@@ -74,13 +74,22 @@ def test_find_catalog_match_noisy_catalog_entry():
     # assumed only happened on the listing side - fixed by stripping known
     # boilerplate from both sides before comparing.
     match = w.find_catalog_match(
-        "Pokemon Trading Card Game: Mega Evolution: Chaos Rising Elite Trainer Box",
+        "Pokemon Center Mega Evolution: Chaos Rising Elite Trainer Box",
         "Elite Trainer Box",
         ENG_CATALOG,
     )
     assert match is not None
     assert match["price"] == 109.90
 
+
+def test_find_catalog_match_standard_etb_does_not_match_pokemon_center_etb():
+    # Regression (Nov 2026): a S$89.90 Standard Perfect Order ETB matched the
+    # S$109.90 Pokemon Center one and alerted as 18% below MSRP.
+    assert w.find_catalog_match(
+        "Pokemon Trading Card Game: Mega Evolution: Chaos Rising Elite Trainer Box",
+        "Elite Trainer Box",
+        ENG_CATALOG,
+    ) is None
 
 def test_find_catalog_match_rejects_unrelated():
     match = w.find_catalog_match(
@@ -493,10 +502,10 @@ def test_same_listing_in_two_searches_alerts_once(monkeypatch, tmp_path):
     monkeypatch.setattr(w, "STATE_FILE", tmp_path / "s.json")
     monkeypatch.setattr(w, "MODE", "local")
     monkeypatch.setattr(w, "load_chinese_prices", lambda: ([], 80.0))
-    monkeypatch.setattr(w, "get_catalog", lambda lang: CATALOGS.get(lang, []))
+    monkeypatch.setattr(w, "get_market_catalogs", lambda: ({"english": [], "japanese": JP_MARKET}, 1.3))
     listing = {
         "title": "Pokemon TCG Abyss Eye Japanese Booster Box Shrinked",
-        "price": 40.0,
+        "price": 70.0,
         "url": "https://www.carousell.sg/p/x-3/?t-id=1",
         "in_stock": True,
     }
@@ -509,3 +518,261 @@ def test_same_listing_in_two_searches_alerts_once(monkeypatch, tmp_path):
     monkeypatch.setattr(w, "send_telegram", sent.append)
     w._run_all_targets({"seen": {}, "digests": {}})
     assert len(sent) == 1
+
+
+# ---- resale pricing (TCGplayer market) --------------------------------------
+JP_MARKET = [
+    {"title": "Abyss Eye Booster Box", "category": "Booster box", "usd": 79.15},
+    {"title": "Mega Dream ex Booster Box", "category": "Booster box", "usd": 86.18},
+    {"title": "MEGA Expansion 30th Celebration Booster Box", "category": "Booster box", "usd": 204.15},
+]
+EN_MARKET = [
+    {"title": "Scarlet & Violet Elite Trainer Box [Koraidon]", "category": "Elite Trainer Box", "usd": 60.0},
+    {"title": "Scarlet & Violet 151 Elite Trainer Box", "category": "Elite Trainer Box", "usd": 120.0},
+    {"title": "Scarlet & Violet 151 Pokemon Center Elite Trainer Box", "category": "Elite Trainer Box", "usd": 400.0},
+    {"title": "Crown Zenith Elite Trainer Box", "category": "Elite Trainer Box", "usd": 309.10},
+    {"title": "Crown Zenith Pokemon Center Elite Trainer Box Plus", "category": "Elite Trainer Box", "usd": 534.82},
+    {"title": "Mega Evolution: Perfect Order Elite Trainer Box", "category": "Elite Trainer Box", "usd": 60.0},
+    {"title": "Mega Evolution: Perfect Order Pokemon Center Elite Trainer Box", "category": "Elite Trainer Box", "usd": 95.0},
+    {"title": "30th Celebration Pokemon Center Elite Trainer Box", "category": "Elite Trainer Box", "usd": 180.0},
+    {"title": "30th Celebration Elite Trainer Box", "category": "Elite Trainer Box", "usd": 90.0},
+]
+MARKET = {"english": EN_MARKET, "japanese": JP_MARKET}
+
+
+def _raw(title, price, url="https://www.carousell.sg/p/x-9/"):
+    return {"title": title, "price": price, "url": url, "in_stock": True, "target_name": "Carousell"}
+
+
+def test_sealed_products_from_group_keeps_only_single_sealed_items():
+    products = [
+        {"productId": 1, "name": "Crown Zenith Elite Trainer Box", "extendedData": []},
+        {"productId": 2, "name": "Crown Zenith Elite Trainer Box Case", "extendedData": []},
+        {"productId": 3, "name": "Code Card - Crown Zenith Elite Trainer Box", "extendedData": []},
+        {"productId": 4, "name": "Pikachu", "extendedData": [{"name": "Number", "value": "160/159"}]},
+        {"productId": 5, "name": "Crown Zenith Mini Tin Display", "extendedData": []},
+        {"productId": 6, "name": "Crown Zenith Booster Bundle", "extendedData": []},
+        {"productId": 7, "name": "Crown Zenith Collection [Regieleki V]", "extendedData": []},
+    ]
+    prices = [{"productId": i, "marketPrice": 10.0 * i} for i in range(1, 8)]
+    prices.append({"productId": 1, "marketPrice": None})
+    out = w.sealed_products_from_group(products, prices)
+    assert [(e["title"], e["category"], e["usd"]) for e in out] == [
+        ("Crown Zenith Elite Trainer Box", "Elite Trainer Box", 10.0),
+        ("Crown Zenith Booster Bundle", "Booster bundle", 60.0),
+    ]
+
+
+def test_market_match_prefers_most_specific_set():
+    m = w.find_market_match("Pokemon Scarlet & Violet 151 Elite Trainer Box", "Elite Trainer Box", EN_MARKET)
+    assert m["title"] == "Scarlet & Violet 151 Elite Trainer Box"
+
+
+def test_market_match_respects_pokemon_center_and_plus_editions():
+    m = w.find_market_match("Pokemon TCG Perfect Order Elite Trainer Box", "Elite Trainer Box", EN_MARKET)
+    assert m["usd"] == 60.0
+    m = w.find_market_match("Pokemon Centre Perfect Order ETB", "Elite Trainer Box", EN_MARKET)
+    assert m["usd"] == 95.0
+    m = w.find_market_match("Pokemon Crown Zenith Pokemon Center ETB Plus", "Elite Trainer Box", EN_MARKET)
+    assert m["usd"] == 534.82
+    m = w.find_market_match("Pokémon Crown Zenith Elite Trainer Box (ETB)", "Elite Trainer Box", EN_MARKET)
+    assert m["usd"] == 309.10
+
+
+def test_market_match_short_titles():
+    # Real titles from Carousell, 5 Nov 2026, that the old matcher missed
+    m = w.find_market_match("Pokémon Center 30th Elite Trainer Box (ETB)", "Elite Trainer Box", EN_MARKET)
+    assert m["title"] == "30th Celebration Pokemon Center Elite Trainer Box"
+    m = w.find_market_match("Pokemon 151 ETB", "Elite Trainer Box", EN_MARKET)
+    assert m["title"] == "Scarlet & Violet 151 Elite Trainer Box"
+    # A title that names no product matches nothing
+    assert w.find_market_match("Pokemon Elite Trainer Box ETB instock", "Elite Trainer Box", EN_MARKET) is None
+
+
+def test_market_match_japanese_high_class_set():
+    m = w.find_market_match("Pokemon Japanese M2a Mega Dream ex Booster Box", "Booster box", JP_MARKET)
+    assert m["usd"] == 86.18
+
+
+def test_evaluate_listing_verdicts():
+    # 30th PC ETB market US$180 x 1.3 = S$234
+    deal = w.evaluate_listing(_raw("Pokémon Center 30th Celebration Elite Trainer Box", 150), MARKET, [], 1.3)
+    assert deal["verdict"] == "deal" and deal["pct_of_market"] == 64
+    fair = w.evaluate_listing(_raw("Pokémon Center 30th Celebration Elite Trainer Box", 220), MARKET, [], 1.3)
+    assert fair["verdict"] == "none"
+    check = w.evaluate_listing(_raw("Pokémon Center 30th Elite Trainer Box (ETB)", 80), MARKET, [], 1.3)
+    assert check["verdict"] == "check"  # S$80 = 34% of market: mismatch, variant or scam
+    jp = w.evaluate_listing(_raw("Pokemon Japanese Abyss Eye Booster Box", 87), MARKET, [], 1.3)
+    assert jp["verdict"] == "none" and jp["pct_of_market"] == 85
+
+
+def test_evaluate_listing_chinese_uses_resale_list():
+    cn = [{"title": "30th Celebration", "category": "Booster box", "price": 85.0}]
+    item = w.evaluate_listing(_raw("Pokemon 30th Celebration Simplified Chinese Booster Box", 65), MARKET, cn, 1.3)
+    assert item["verdict"] == "deal" and item["source"] == "local resale list"
+    item = w.evaluate_listing(_raw("Pokemon 30th Celebration Simplified Chinese Booster Box", 85), MARKET, cn, 1.3)
+    assert item["verdict"] == "none"
+
+
+def test_evaluate_listing_skips_unknown_and_multi_set():
+    assert w.evaluate_listing(_raw("Pokemon Gem Vol 5 Booster Box", 42), MARKET, [], 1.3) is None
+    assert w.evaluate_listing(_raw(
+        "Pokemon Japanese Booster Box Abyss Eye / Ninja Spinner / Mega Dream / Inferno X", 85), MARKET, [], 1.3) is None
+
+
+def test_resale_message_shapes():
+    item = w.evaluate_listing(_raw("Pokémon Center 30th Celebration Elite Trainer Box <new>", 150), MARKET, [], 1.3)
+    msg = w._build_resale_message(item)
+    assert "Deal:" in msg and "64% of market S$234.00" in msg and "&lt;new&gt;" in msg
+    assert "Official store" in w._build_resale_message(item, official=True)
+    item["verdict"] = "check"
+    assert "Check:" in w._build_resale_message(item)
+
+
+def test_shop_restock_alerts_again_after_selling_out(monkeypatch, tmp_path):
+    monkeypatch.setattr(w, "STATE_FILE", tmp_path / "s.json")
+    monkeypatch.setattr(w, "MODE", "cloud")
+    monkeypatch.setattr(w, "load_chinese_prices", lambda: ([], 80.0))
+    monkeypatch.setattr(w, "get_market_catalogs", lambda: (MARKET, 1.3))
+    listing = _raw("Pokémon Center Trading Card Game: 30th Celebration Pokémon Center Elite Trainer Box", 109.9,
+                   url="https://www.lazada.sg/products/pdp-i1.html")
+    stock = {"items": [listing]}
+    monkeypatch.setitem(w.PARSERS, "lazada", lambda t: [dict(x, target_name=t.name) for x in stock["items"]])
+    monkeypatch.setattr(w, "TARGETS", [w.Target(name="Official", url="u", parser="lazada")])
+    monkeypatch.setattr(w, "lazada_product_in_stock", lambda url: True)
+    sent = []
+    monkeypatch.setattr(w, "send_telegram", sent.append)
+    state = {"seen": {}, "digests": {}}
+    w._run_all_targets(state)  # in stock at retail = 47% of market: a hot restock
+    w._run_all_targets(state)  # still in stock: no repeat
+    stock["items"] = []
+    w._run_all_targets(state)  # sold out
+    stock["items"] = [listing]
+    w._run_all_targets(state)  # restocked: alerts again
+    assert len(sent) == 2
+
+
+# ---- real-data fixes (137 Carousell listings, 5 Nov 2026) --------------------
+EN_MARKET_2 = EN_MARKET + [
+    {"title": "Celebrations Elite Trainer Box", "category": "Elite Trainer Box", "usd": 317.0},
+    {"title": "30th Celebration Booster Bundle", "category": "Booster bundle", "usd": 68.0},
+    {"title": "Phantasmal Flames Booster Bundle", "category": "Booster bundle", "usd": 74.0},
+    {"title": "Super-Premium Collection [Mew & Mewtwo]", "category": "Premium/Special collection", "usd": 4700.0},
+    {"title": "Prismatic Evolutions Super-Premium Collection", "category": "Premium/Special collection", "usd": 270.0},
+    {"title": "Flashfire Sleeved Booster Pack", "category": "Single booster pack", "usd": 187.0},
+    {"title": "Mega Evolution Booster Pack", "category": "Single booster pack", "usd": 9.5},
+]
+JP_MARKET_2 = [
+    {"title": "MEGA Expansion 30th Celebration Booster Box", "category": "Booster box", "usd": 204.15, "code": "m6a"},
+    {"title": "Terastal Fest ex Booster Box", "category": "Booster box", "usd": 150.0, "code": "sv8a"},
+    {"title": "Mega Dream ex Booster Box", "category": "Booster box", "usd": 86.18, "code": "m2a"},
+]
+MARKET_2 = {"english": EN_MARKET_2, "japanese": JP_MARKET_2}
+
+
+def _m(title, category, catalog=EN_MARKET_2):
+    m = w.find_market_match(title, category, catalog)
+    return m and m["title"]
+
+
+def test_edition_numbers_must_agree():
+    # "30th Celebrations ETB" is NOT the 2021 Celebrations ETB
+    assert _m("Pokémon 30th Celebrations Elite Trainer Box (ETB) English", "Elite Trainer Box") == "30th Celebration Elite Trainer Box"
+    assert _m("Pokémon Celebrations Elite Trainer Box (ETB) English", "Elite Trainer Box") == "Celebrations Elite Trainer Box"
+
+
+def test_naming_variants_fold_together():
+    assert _m("Pokemon TCG 30th Anniversary Booster Bundle", "Booster bundle") == "30th Celebration Booster Bundle"
+    assert _m("Pokemon phantasmal flame booster bundle", "Booster bundle") == "Phantasmal Flames Booster Bundle"
+    assert _m("Selling Pokemon Japanese Terastal Festival Booster Box", "Booster box", JP_MARKET_2) == "Terastal Fest ex Booster Box"
+    assert _m("SHRINKED MEGA DREAM Booster Box Japanese", "Booster box", JP_MARKET_2) == "Mega Dream ex Booster Box"
+
+
+def test_set_code_narrows_match():
+    assert _m("[INSTOCK] Pokemon Japanese m6a celebration booster box", "Booster box", JP_MARKET_2) == "MEGA Expansion 30th Celebration Booster Box"
+
+
+def test_bracket_variants_kept_and_generic_entries_skipped():
+    title = "[Instock] Prismatic Evolutions Super Premium Collection Box"
+    assert _m(title, "Premium/Special collection") == "Prismatic Evolutions Super-Premium Collection"
+    assert _m("Pokemon Super Premium Collection", "Premium/Special collection") is None
+    assert _m("Pokemon Sleeved Boosters", "Single booster pack") is None
+
+
+def test_non_sealed_listings_are_skipped():
+    for title in [
+        "Pokémon Center 30th Elite Trainer Box (ETB) (No packs)",
+        "[AVAIL] Pokemon Mew ex 151 Ultra Premium Collection PSA 8",
+        "Pokemon Mega Evolution Pitch Black Elite Trainer Box (ETB) Accessories",
+        "Premium Acrylic Booster Box Case English Pokemon",
+        "WTB Elite Trainer Box Booster Box Pokemon ETB",
+    ]:
+        assert w.evaluate_listing(_raw(title, 30), MARKET_2, [], 1.3) is None, title
+
+
+def test_two_set_names_are_skipped():
+    title = "CHEAP pokemon pitch perfect phantasmal flames 30th enhanced booster box"
+    assert w.evaluate_listing(_raw(title, 250), MARKET_2, [], 1.3) is None
+
+
+def test_small_gaps_are_not_deals():
+    # S$8 pack vs S$12.35 market is 65%, but only S$4 of room
+    item = w.evaluate_listing(_raw("Pokemon TCG Booster Packs - Mega Evolution Series", 8), MARKET_2, [], 1.3)
+    assert item["verdict"] == "none"
+
+
+def test_chi_tag_means_chinese():
+    assert w.detect_language("Pokemon 30th anniversary booster box [CHI]") == "chinese"
+
+
+def test_sealed_products_from_group_records_set_code():
+    out = w.sealed_products_from_group(
+        [{"productId": 1, "name": "Mega Dream ex Booster Box", "extendedData": []}],
+        [{"productId": 1, "marketPrice": 86.18}],
+        "M2a",
+    )
+    assert out == [{"title": "Mega Dream ex Booster Box", "category": "Booster box", "usd": 86.18, "code": "m2a"}]
+
+
+def test_official_store_sold_out_items_do_not_alert(monkeypatch, tmp_path):
+    # Regression (5 Nov 2026): the store's grid shows sold-out items like
+    # available ones; 9 alerts went out for sold-out products.
+    monkeypatch.setattr(w, "STATE_FILE", tmp_path / "s.json")
+    monkeypatch.setattr(w, "MODE", "cloud")
+    monkeypatch.setattr(w, "load_chinese_prices", lambda: ([], 80.0))
+    monkeypatch.setattr(w, "get_market_catalogs", lambda: (MARKET, 1.3))
+    listing = _raw("Pokémon Center Trading Card Game: 30th Celebration Pokémon Center Elite Trainer Box", 109.9,
+                   url="https://www.lazada.sg/products/pdp-i1.html")
+    monkeypatch.setitem(w.PARSERS, "lazada", lambda t: [dict(listing, target_name=t.name)])
+    monkeypatch.setattr(w, "TARGETS", [w.Target(name="Official", url="u", parser="lazada")])
+    stock = {"in": False}
+    monkeypatch.setattr(w, "lazada_product_in_stock", lambda url: stock["in"])
+    sent = []
+    monkeypatch.setattr(w, "send_telegram", sent.append)
+    state = {"seen": {}, "digests": {}}
+    w._run_all_targets(state)
+    assert sent == []
+    stock["in"] = True
+    w._run_all_targets(state)
+    assert len(sent) == 1
+
+
+def test_lazada_stock_check_reads_product_page(monkeypatch):
+    pages = {
+        "sold": "<html><body>$109.90 Quantity Out of stock Add to Wishlist</body></html>",
+        "ok": "<html><body>$109.90 Quantity Buy Now Add to Cart</body></html>",
+        "unclear": "<html><body>$109.90</body></html>",
+    }
+    monkeypatch.setattr(w, "fetch_rendered_html", lambda url, wait_ms=0: pages[url])
+    assert w.lazada_product_in_stock("ok") is True
+    assert w.lazada_product_in_stock("sold") is False
+    assert w.lazada_product_in_stock("unclear") is False
+
+
+def test_mini_tin_and_ex_tin_are_different_products():
+    catalog = [
+        {"title": "30th Celebration Mini Tin [Espeon]", "category": "Tin", "usd": 24.0},
+        {"title": "30th Celebration ex Tin [Sylveon ex]", "category": "Tin", "usd": 30.0},
+    ]
+    m = w.find_market_match("Pokémon TCG: 30th Celebration ex Tin (Standard) (Sylveon Ex)", "Tin", catalog)
+    assert m["usd"] == 30.0
