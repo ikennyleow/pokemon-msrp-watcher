@@ -50,6 +50,11 @@ Carousell blocks cloud servers (0 listings from GitHub Actions since Nov 2026, w
 
 The Mac copy also sends **buyout-lot alerts**: one Telegram message per newly posted collection, binder or bulk lot (S$20–400) from five newest-first Carousell searches. These can't be priced automatically, so the alert is about speed. The title filter (`is_buyout_lot`) was tuned against 103 real listings, since most search results are empty binders, sealed "Binder Collection" products, single cards from sets named "... Collection", or dealers' keyword-stuffed titles. A search's first run only records existing listings, so there's no flood of old listings.
 
+### 6.2 Target changes (Nov 2026)
+- Removed Toys"R"Us (its /pokemon/ page is toys and figures; it sells no Pokémon cards online) and Amazon.sg (0 listings on every run).
+- Added newest-first Carousell searches (Mac) for Elite Trainer Boxes, booster bundles and premium collections, alongside booster boxes and Chinese booster boxes.
+- The official store page intermittently renders empty (2 of 4 runs on 5 Nov), so it's retried up to 3 times with longer waits and reported as an error if still empty.
+
 ## 7. MSRP determination
 There are **two** reference catalogs, because English/International and Japanese Pokémon TCG product are genuinely different product lines with different official distributors and no shared official Singapore price to compare against directly.
 

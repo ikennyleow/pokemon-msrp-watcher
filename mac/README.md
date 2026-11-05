@@ -6,8 +6,9 @@ sends alerts to the same Telegram bot.
 
 It checks:
 
-- **Sealed boxes**: the Carousell booster box and Chinese booster box
-  searches, priced against resale value the same way as the GitHub run
+- **Sealed product**: newest-first Carousell searches for booster boxes,
+  Chinese booster boxes, Elite Trainer Boxes, booster bundles and premium
+  collections, priced against resale value the same way as the GitHub run
   (TCGplayer market for English and Japanese, resale list for Chinese).
 - **Buyout lots**: newest listings for "pokemon binder", "pokemon
   collection", "old pokemon cards", "pokemon cards lot" and "pokemon cards

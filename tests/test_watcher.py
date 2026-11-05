@@ -776,3 +776,32 @@ def test_mini_tin_and_ex_tin_are_different_products():
     ]
     m = w.find_market_match("Pokémon TCG: 30th Celebration ex Tin (Standard) (Sylveon Ex)", "Tin", catalog)
     assert m["usd"] == 30.0
+
+
+# ---- coverage (Nov 2026) ------------------------------------------------------
+def test_dead_targets_removed_and_carousell_searches_added():
+    names = [t.name for t in w.TARGETS]
+    assert not any("Toys" in n or "Amazon" in n for n in names)
+    local = {t.name for t in w.TARGETS if t.runs_on == "local"}
+    for search in ("booster box", "Chinese booster box", "Elite Trainer Box", "Booster bundle", "Premium collection"):
+        assert any(search.lower() in n.lower() for n in local), search
+    assert all("sort_by=3" in t.url for t in w.TARGETS if t.parser == "carousell")
+
+
+def test_lazada_retries_when_store_page_is_empty(monkeypatch):
+    calls = []
+
+    def fake(wait_ms=4000):
+        calls.append(wait_ms)
+        return [] if len(calls) < 2 else [{"title": "x", "price": 1.0, "url": "u", "in_stock": True}]
+
+    monkeypatch.setattr(w, "_fetch_lazada_raw_listings", fake)
+    out = w.check_lazada(w.Target(name="Official", url="u", parser="lazada"))
+    assert calls == [4000, 8000] and out[0]["target_name"] == "Official"
+
+
+def test_lazada_empty_after_retries_is_an_error(monkeypatch):
+    monkeypatch.setattr(w, "_fetch_lazada_raw_listings", lambda wait_ms=4000: [])
+    import pytest
+    with pytest.raises(RuntimeError):
+        w.check_lazada(w.Target(name="Official", url="u", parser="lazada"))

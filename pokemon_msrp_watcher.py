@@ -261,7 +261,7 @@ def parse_price(text: str) -> float | None:
     return float(match.group()) if match else None
 
 
-def _fetch_lazada_raw_listings() -> list[dict]:
+def _fetch_lazada_raw_listings(wait_ms: int = 4000) -> list[dict]:
     """Scrape the Lazada Pokemon Store Online Singapore storefront's "Lots &
     Card Game Packs" sub-category (sealed product) into raw listing dicts
     {title, price, url, in_stock}. Selectors verified against live HTML -
@@ -274,7 +274,7 @@ def _fetch_lazada_raw_listings() -> list[dict]:
     seen_titles = set()
     for page_num in range(1, LAZADA_CATALOG_MAX_PAGES + 1):
         page_url = LAZADA_CATALOG_URL_TEMPLATE.format(page=page_num)
-        html_content = fetch_rendered_html(page_url)
+        html_content = fetch_rendered_html(page_url, wait_ms=wait_ms)
         soup = BeautifulSoup(html_content, "html.parser")
         tiles = soup.select(".Bm3ON > div")
         if not tiles:
@@ -342,7 +342,16 @@ def check_lazada(target: "Target") -> list[dict]:
     live price is compared against the CACHED reference catalog (which may
     be up to CATALOG_REFRESH_HOURS old), so a temporary flash-sale discount
     below its own regular price is still catchable."""
-    return [{**listing, "target_name": target.name} for listing in _fetch_lazada_raw_listings() if listing["in_stock"]]
+    # The store page intermittently renders with no products (2 of 4 runs
+    # on 5 Nov 2026). Retry with longer waits before giving up, and fail
+    # loudly so an empty result shows as an error in the run log.
+    for attempt, wait_ms in enumerate((4000, 8000, 12000), start=1):
+        listings = _fetch_lazada_raw_listings(wait_ms=wait_ms)
+        if listings:
+            if attempt > 1:
+                print(f"[lazada] loaded on attempt {attempt}")
+            return [{**listing, "target_name": target.name} for listing in listings if listing["in_stock"]]
+    raise RuntimeError("store page showed no products after 3 attempts")
 
 
 # ======================================================================
@@ -1005,16 +1014,9 @@ TARGETS = [
         url="https://www.lazada.sg/shop-lots-&-card-game-packs/?pokemon-store-online-singapore&from=wangpu&m=shop&q=All-Products",
         parser="lazada",
     ),
-    Target(
-        name="Toys\"R\"Us Singapore",
-        url="https://www.toysrus.com.sg/pokemon/",
-        parser="toysrus",
-    ),
-    Target(
-        name="Amazon.sg - Elite Trainer Box search",
-        url="https://www.amazon.sg/elite-trainer-box/s?k=elite+trainer+box",
-        parser="amazon",
-    ),
+    # Toys"R"Us and Amazon.sg removed Nov 2026: Toys"R"Us SG sells no
+    # Pokemon cards online (its /pokemon/ page is toys and figures), and
+    # Amazon returned 0 listings on every run. Parsers kept for later.
     Target(
         name="DXCOLLECTION - Booster Boxes",
         url="https://dxcollection.com.sg/product-category/pokemon-cards-singapore/pokemon-booster-boxes/",
@@ -1034,6 +1036,24 @@ TARGETS = [
     Target(
         name="Carousell - Chinese booster box search",
         url="https://www.carousell.sg/search/pokemon%20chinese%20booster%20box?sort_by=3",
+        parser="carousell",
+        runs_on="local",
+    ),
+    Target(
+        name="Carousell - Elite Trainer Box search",
+        url="https://www.carousell.sg/search/pokemon%20elite%20trainer%20box?sort_by=3",
+        parser="carousell",
+        runs_on="local",
+    ),
+    Target(
+        name="Carousell - Booster bundle search",
+        url="https://www.carousell.sg/search/pokemon%20booster%20bundle?sort_by=3",
+        parser="carousell",
+        runs_on="local",
+    ),
+    Target(
+        name="Carousell - Premium collection search",
+        url="https://www.carousell.sg/search/pokemon%20premium%20collection?sort_by=3",
         parser="carousell",
         runs_on="local",
     ),
