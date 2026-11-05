@@ -1,0 +1,9 @@
+{
+  "_about": "Hand-kept RESALE reference prices (SGD) for Simplified Chinese sealed product. There is no official Singapore retail price for Chinese product, so these are what a box realistically resells for locally (set to the cheapest few current Carousell asks). Edit the prices when the market moves; add one entry per name sellers commonly use for the same product. A listing alerts when its price is at or below deal_pct of the reference.",
+  "deal_pct": 80,
+  "items": [
+    {"title": "30th Celebration", "category": "Booster box", "price": 85, "updated": "2026-11-05"},
+    {"title": "30th Anniversary", "category": "Booster box", "price": 85, "updated": "2026-11-05"},
+    {"title": "30thC", "category": "Booster box", "price": 85, "updated": "2026-11-05"}
+  ]
+}

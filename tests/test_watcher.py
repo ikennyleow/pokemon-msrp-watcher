@@ -242,3 +242,103 @@ def test_classify_deal_other_retailers_allow_exact_msrp_match():
     assert w.classify_deal("toysrus", 0.0) == "deal"
     assert w.classify_deal("dxcollection", -5.0) == "deal"
     assert w.classify_deal("carousell", 5.0) == "above"
+
+
+# ---- Simplified Chinese support -----------------------------------------
+CN_CATALOG = [
+    {"title": "30th Celebration", "category": "Booster box", "price": 113.0},
+    {"title": "30th Anniversary", "category": "Booster box", "price": 113.0},
+]
+
+
+def test_detect_language_chinese():
+    assert w.detect_language("Pokemon 30th Celebration Chinese Booster Box") == "chinese"
+    assert w.detect_language("Pokemon 30th Anniversary Simplified Chinese Booster Box sealed") == "chinese"
+    assert w.detect_language("Pokemon CN 30th Celebration booster box") == "chinese"
+    assert w.detect_language("宝可梦 简体中文 30th Pokemon booster box") == "chinese"
+    # "cn" must be a whole word, not part of another word
+    assert w.detect_language("Pokemon Scarlet Violet Booster Box (acne free)") == "english"
+    # Japanese titles stay Japanese
+    assert w.detect_language("Pokemon 30th Celebration Japanese Booster Box") == "japanese"
+
+
+def test_chinese_listing_matches_resale_list():
+    raw = {
+        "title": "Pokemon 30th Anniversary Celebration Chinese Booster Box",
+        "price": 80.0,
+        "url": "https://www.carousell.sg/p/x-123/?t-id=abc",
+        "in_stock": True,
+        "target_name": "Carousell - Chinese booster box search",
+    }
+    item = w.process_listing(raw, {"english": [], "japanese": [], "chinese": CN_CATALOG})
+    assert item is not None
+    assert item["language"] == "chinese"
+    assert item["reference_price"] == 113.0
+    assert item["pct_above"] == -29.2
+
+
+def test_chinese_listing_not_matched_against_japanese_catalog():
+    raw = {
+        "title": "Pokemon Abyss Eye Chinese Booster Box",
+        "price": 30.0,
+        "url": "https://example.com/c",
+        "in_stock": True,
+        "target_name": "Test Retailer",
+    }
+    # Abyss Eye is only in the Japanese catalog, so a Chinese listing has no match
+    assert w.process_listing(raw, {"english": [], "japanese": JP_CATALOG, "chinese": CN_CATALOG}) is None
+
+
+def test_classify_deal_chinese_uses_resale_threshold():
+    # 80/113 = 71% of resale: a deal at the default 80% threshold
+    assert w.classify_deal("carousell", -29.2, "chinese", 80) == "deal"
+    # exactly 80% of resale: still a deal
+    assert w.classify_deal("carousell", -20.0, "chinese", 80) == "deal"
+    # 90% of resale: cheaper than resale but no room to flip -> digest
+    assert w.classify_deal("carousell", -10.0, "chinese", 80) == "above"
+    # existing behaviour for other languages is unchanged
+    assert w.classify_deal("carousell", -10.0, "japanese", 80) == "deal"
+
+
+def test_chinese_alert_message_shows_pct_of_resale():
+    item = {
+        "title": "Pokemon 30th Celebration Chinese Booster Box",
+        "category": "Booster box",
+        "language": "chinese",
+        "price": 80.0,
+        "reference_price": 113.0,
+        "pct_above": -29.2,
+        "url": "https://www.carousell.sg/p/x-123/",
+        "retailer": "Carousell",
+    }
+    msg = w._build_individual_message(item)
+    assert "Below resale" in msg
+    assert "71% of SGD 113.00 resale" in msg
+    assert "Simplified Chinese" in msg
+
+
+def test_digest_signs_negative_pct_and_labels_resale():
+    item = {
+        "title": "Pokemon 30th Celebration Chinese Booster Box",
+        "category": "Booster box",
+        "language": "chinese",
+        "price": 100.0,
+        "reference_price": 113.0,
+        "pct_above": -11.5,
+        "url": "https://example.com/d",
+        "retailer": "Carousell",
+    }
+    msg = w._build_digest_message("Carousell", [item])
+    assert "resale SGD 113.00, -11.5%" in msg
+    assert "+-" not in msg
+
+
+def test_load_chinese_prices_reads_repo_file():
+    catalog, deal_pct = w.load_chinese_prices()
+    assert deal_pct == 80
+    assert any(c["title"] == "30th Celebration" and c["price"] == 85 for c in catalog)
+
+
+def test_load_chinese_prices_missing_file_is_harmless(tmp_path, monkeypatch):
+    monkeypatch.setattr(w, "CHINESE_PRICES_FILE", tmp_path / "nope.json")
+    assert w.load_chinese_prices() == ([], 80.0)
