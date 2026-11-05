@@ -30,6 +30,8 @@ Usage:
     python3 pokemon_msrp_watcher.py
 """
 
+from __future__ import annotations
+
 import html
 import json
 import os
@@ -43,7 +45,11 @@ import requests
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).parent
-STATE_FILE = ROOT / "state.json"
+# Where this copy runs. "cloud" = the GitHub Action (every site except
+# Carousell); "local" = Kenny's Mac (Carousell only), because Carousell
+# blocks cloud servers but not a home connection (confirmed Nov 2026).
+MODE = os.environ.get("WATCHER_MODE", "cloud").strip().lower()
+STATE_FILE = ROOT / ("state_local.json" if MODE == "local" else "state.json")
 CATALOG_CACHE_FILE = ROOT / "catalog_cache.json"
 SECRETS_FILE = ROOT / "secrets.json"  # gitignored
 CHINESE_PRICES_FILE = ROOT / "chinese_prices.json"
@@ -64,6 +70,7 @@ class Target:
     name: str
     url: str
     parser: str
+    runs_on: str = "cloud"  # "cloud" (GitHub Action) or "local" (Mac)
 
 
 def load_telegram_credentials() -> tuple[str, str]:
@@ -460,6 +467,13 @@ def get_catalog(language: str) -> list[dict]:
     cache = _load_catalog_cache()
     entry = cache.get(language)
     now = time.time()
+
+    if MODE == "local":
+        # The Mac copy only reads the catalogs the GitHub run keeps fresh and
+        # commits (pulled before each local run). Never scrape or write the
+        # cache locally: that would leave the Mac's git checkout dirty and
+        # break the next pull.
+        return entry["catalog"] if entry else []
     is_stale = entry is None or (now - entry.get("fetched_at", 0)) > CATALOG_REFRESH_HOURS * 3600
 
     if is_stale:
@@ -686,15 +700,136 @@ TARGETS = [
     ),
     Target(
         name="Carousell - Pokemon booster box search",
-        url="https://www.carousell.sg/search/pokemon%20booster%20box",
+        url="https://www.carousell.sg/search/pokemon%20booster%20box?sort_by=3",
         parser="carousell",
+        runs_on="local",
     ),
     Target(
         name="Carousell - Chinese booster box search",
         url="https://www.carousell.sg/search/pokemon%20chinese%20booster%20box?sort_by=3",
         parser="carousell",
+        runs_on="local",
     ),
 ]
+
+
+# ======================================================================
+# Buyout-lot alerts (local mode only). Collections, binders and bulk lots
+# sold at one price can't be priced automatically, so the job here is
+# SPEED: tell Kenny within one poll that a new lot was posted, so he can
+# look before other dealers do. Newest-first Carousell searches.
+# ======================================================================
+BUYOUT_SEARCHES = [
+    ("pokemon binder", "https://www.carousell.sg/search/pokemon%20binder?sort_by=3"),
+    ("pokemon collection", "https://www.carousell.sg/search/pokemon%20card%20collection?sort_by=3"),
+    ("old pokemon cards", "https://www.carousell.sg/search/old%20pokemon%20cards?sort_by=3"),
+    ("pokemon cards lot", "https://www.carousell.sg/search/pokemon%20cards%20lot?sort_by=3"),
+    ("pokemon cards clearance", "https://www.carousell.sg/search/pokemon%20cards%20clearance?sort_by=3"),
+]
+BUYOUT_MIN_PRICE = 20
+BUYOUT_MAX_PRICE = 400  # above the usual buying cap even with a discount
+
+# Tuned against 103 real listings from five newest-first searches (5 Nov
+# 2026). Most results for these searches are NOT lots: empty binders,
+# boxed "Binder Collection" products, single cards from sets named
+# "... Collection", and dealers' keyword-stuffed titles.
+#
+# A lot title must clearly say it's a lot...
+_LOT_STRONG = re.compile(
+    r"\b(lot|lots|bulk|whole|entire|childhood|clearance|clearing|letting go|moving out|"
+    r"quit|quitting|all for|bundle of|\d{2,4}\s*\+?\s*(pcs|cards)|"
+    r"(my|whole|entire|full|card|cards) collection|collection (lot|sale|clearance)|"
+    r"(old|vintage|random|assorted) (pok[eé]mon )?cards)\b",
+    re.I,
+)
+# ...or be a binder/album that says it has cards in it...
+_LOT_CONTAINER = re.compile(r"\b(binder|album|folder)\b", re.I)
+_HAS_CARDS = re.compile(r"\b(cards|full|filled|with cards|inside)\b", re.I)
+# ...and mention none of these (accessories, wanted ads, graded, sealed
+# product, pre-orders).
+_NOT_A_LOT = re.compile(
+    r"\b(wtb|wtt|buying|buy all|buyback|looking for|sleeves?|toploaders?|top ?loaders?|"
+    r"deck ?box|playmat|magnetic|empty|binder only|zip|\d+ ?pockets?|\d+ ?slots?|"
+    r"ring (card )?binder|psa|bgs|cgc|graded|slab|booster|boosters|etb|elite trainer|"
+    r"sealed|figure|plush|premium collection|special collection|binder collection|"
+    r"collection box|ultra premium|upc|tin|blister|pack|packs|leather|oversize|"
+    r"mini binder|trading card (game )?binders?|card holder|storage|case|"
+    r"cash-?out|preorder|pre-order|po)\b",
+    re.I,
+)
+# Dealers stuff titles with set names to catch every search; a real lot
+# rarely names 3+ sets.
+_SET_NAMES = re.compile(
+    r"\b(151|prismatic|terastal|mega brave|mega symphonia|mega dream|ascended heroes|"
+    r"perfect order|phantasmal|chaos rising|pitch black|inferno x|abyss eye|"
+    r"evolving skies|shiny treasure|25th|30th|surging sparks|stellar crown)\b",
+    re.I,
+)
+
+
+def is_buyout_lot(title: str, price: float | None) -> bool:
+    if price is None or not (BUYOUT_MIN_PRICE <= price <= BUYOUT_MAX_PRICE):
+        return False
+    if not re.search(r"pok[eé]mon", title, re.I):
+        return False
+    if _NOT_A_LOT.search(title):
+        return False
+    if len({m.lower() for m in _SET_NAMES.findall(title)}) >= 3:
+        return False
+    return bool(_LOT_STRONG.search(title)) or bool(
+        _LOT_CONTAINER.search(title) and _HAS_CARDS.search(title)
+    )
+
+
+def _listing_id(url: str) -> str:
+    m = re.search(r"(\d{6,})/?$", _clean_url(url))
+    return m.group(1) if m else _clean_url(url)
+
+
+def _build_lot_message(item: dict, search: str) -> str:
+    title = html.escape(item["title"])
+    url = html.escape(_clean_url(item["url"]), quote=True)
+    return (
+        f"\U0001F0CF <b>New lot: {title}</b>\n"
+        f"S${item['price']:.0f} · found by \"{html.escape(search)}\"\n"
+        f"<a href=\"{url}\">View listing</a> · send to Claude to price-check"
+    )
+
+
+def run_buyout_searches(state: dict, fetch=None) -> None:
+    """Alert once per new lot listing. The first time a search runs it only
+    records what's already there (no alert flood); after that, only
+    listings posted since are sent."""
+    fetch = fetch or (lambda url: check_carousell(Target(name="buyout", url=url, parser="carousell")))
+    lots_state = state.setdefault("lots", {})
+    for search, url in BUYOUT_SEARCHES:
+        try:
+            listings = fetch(url)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[error] buyout search '{search}': {exc}")
+            continue
+        seen = set(lots_state.get(search, []))
+        first_run = search not in lots_state
+        lots = [x for x in listings if x.get("in_stock", True) and is_buyout_lot(x["title"], x.get("price"))]
+        new = [x for x in lots if _listing_id(x["url"]) not in seen]
+        print(f"[lots] {search}: {len(listings)} listings, {len(lots)} lots, {0 if first_run else len(new)} new")
+        for item in new:
+            lid = _listing_id(item["url"])
+            if not first_run:
+                # Another search may already have sent this listing this run.
+                if any(lid in v for k, v in lots_state.items() if k != search):
+                    seen.add(lid)
+                    continue
+                try:
+                    send_telegram(_build_lot_message(item, search))
+                except Exception as exc:  # noqa: BLE001
+                    print(f"[error] failed to send lot alert {lid}: {exc}")
+                    continue  # not marked seen, so retried next run
+            seen.add(lid)
+        # Keep the list bounded: newest-first searches only ever show the
+        # latest few dozen, so 500 ids is plenty of memory.
+        lots_state[search] = sorted(seen, reverse=True)[:500]
+        save_state(state)
 
 
 # ======================================================================
@@ -886,6 +1021,8 @@ def _run_all_targets(state: dict) -> None:
     )
 
     for target in TARGETS:
+        if target.runs_on != MODE:
+            continue
         parser_fn = PARSERS.get(target.parser)
         if not parser_fn:
             print(f"[skip] no parser for {target.name}")
@@ -950,8 +1087,13 @@ def _run_all_targets(state: dict) -> None:
 
 def run() -> None:
     state = load_state()
+    state.setdefault("seen", {})
+    state.setdefault("digests", {})
+    print(f"[mode] {MODE}")
     try:
         _run_all_targets(state)
+        if MODE == "local":
+            run_buyout_searches(state)
     finally:
         save_state(state)  # belt-and-suspenders: never lose progress
 
