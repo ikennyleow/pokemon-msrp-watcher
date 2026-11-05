@@ -464,3 +464,48 @@ def test_is_buyout_lot_keeps_real_lots_from_search_results():
     assert w.is_buyout_lot("Pokemon card clearance", 22)
     assert w.is_buyout_lot("Pokemon Reverse Holo Lot (Mid-era) card", 88)
     assert w.is_buyout_lot("Pokemon Cards AR lot card", 50)
+
+
+# ---- dealer price lists (caught live 5 Nov 2026) ----------------------------
+def test_multi_set_price_list_is_not_matched():
+    raw = {
+        "title": "Pokemon Japanese Booster Box Shrink/Unshrink 30th Anniversary, Abyss Eye Ninja Spinner/ Mega Dream/ Inferno X/ Terestal Festival",
+        "price": 85.0,
+        "url": "https://www.carousell.sg/p/x-1/",
+        "in_stock": True,
+        "target_name": "Carousell",
+    }
+    assert w.process_listing(raw, CATALOGS) is None
+
+
+def test_single_set_listing_still_matched():
+    raw = {
+        "title": "Pokemon TCG Abyss Eye Japanese Booster Box Shrinked",
+        "price": 40.0,
+        "url": "https://www.carousell.sg/p/x-2/",
+        "in_stock": True,
+        "target_name": "Carousell",
+    }
+    assert w.process_listing(raw, CATALOGS) is not None
+
+
+def test_same_listing_in_two_searches_alerts_once(monkeypatch, tmp_path):
+    monkeypatch.setattr(w, "STATE_FILE", tmp_path / "s.json")
+    monkeypatch.setattr(w, "MODE", "local")
+    monkeypatch.setattr(w, "load_chinese_prices", lambda: ([], 80.0))
+    monkeypatch.setattr(w, "get_catalog", lambda lang: CATALOGS.get(lang, []))
+    listing = {
+        "title": "Pokemon TCG Abyss Eye Japanese Booster Box Shrinked",
+        "price": 40.0,
+        "url": "https://www.carousell.sg/p/x-3/?t-id=1",
+        "in_stock": True,
+    }
+    monkeypatch.setitem(w.PARSERS, "fake", lambda t: [dict(listing, target_name=t.name)])
+    monkeypatch.setattr(w, "TARGETS", [
+        w.Target(name="Search A", url="a", parser="fake", runs_on="local"),
+        w.Target(name="Search B", url="b", parser="fake", runs_on="local"),
+    ])
+    sent = []
+    monkeypatch.setattr(w, "send_telegram", sent.append)
+    w._run_all_targets({"seen": {}, "digests": {}})
+    assert len(sent) == 1
