@@ -114,6 +114,9 @@ A review against 137 real Carousell listings (5 Nov 2026) found the MSRP yardsti
 - Matching requires Pokemon Center / Plus / Mini editions and edition numbers (30th, 25th, 151) to agree, uses TCGplayer set codes (M6a, SV8a) when a title has one, keeps variant names TCGplayer writes in brackets, folds common naming variants (Anniversary/Celebration, Festival/Fest, plurals, "ex"), and skips titles naming 2+ sets and non-sealed listings (graded, empty, opened, accessories).
 - The JPY-MSRP catalog (§7.2) and above-MSRP digests (§8.10) are no longer used for alerts.
 
+### 7.9 Daily sell-side price check (Nov 2026, Mac only)
+Once a day (first local run after 09:00), `sell_digest.py` reads Kenny's tracker holdings (read-only, via the tracker's storage API and its password in the gitignored `secrets.json`) and his Carousell profile, searches Carousell for each sellable holding (quantity > 0, not Never Sell), and sends one Telegram message: cut/raise suggestions for his live listings (vs the lowest other ask and market value) and the five most valuable unlisted holdings. Holdings and listings are compared by identity: both must resolve to the same TCGplayer product. Competing asks outside 30–300% of market (cases, deposits, placeholders) are ignored. It never changes a listing or the tracker.
+
 ## 8. Functional requirements
 1. **Refresh reference catalogs**: scrape the Lazada English catalog (§7.1) and the pokemon-card.com Japanese catalog (§7.2, including the JPY→SGD rate and box-price derivation), caching both, on the schedule in §7.1/§7.2.
 2. **Fetch**: for each configured retailer target, retrieve current page content, on the shared polling schedule (§9). JS-rendered targets (Lazada, Carousell) need a headless-browser fetch, not plain HTTP GET.
