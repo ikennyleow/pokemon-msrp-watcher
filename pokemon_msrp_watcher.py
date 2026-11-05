@@ -159,7 +159,7 @@ _BOILERPLATE_PATTERNS = [
     r"\blimit\b.*",  # anything from "limit" onward (limit N per person)
     r"\bpokemon\b", r"\bpokémon\b",
     r"\btrading card game\b", r"\btcg\b",
-    r"\bcenter\b", r"\boriginal\b",
+    r"\bcent(er|re)\b", r"\bpc\b", r"\bpkc\b", r"\boriginal\b",
     r"\bstandard edition\b",
     r"\bjapanese\b", r"\bjap\b", r"\bjp\b",
     r"\bchinese\b", r"\bsimplified\b", r"\bcn\b",
@@ -198,7 +198,11 @@ def find_catalog_match(title: str, category: str, catalog: list[dict], threshold
 
     Threshold is an implementation detail to tune against real data
     (PRD §7.5, §11.5)."""
-    candidates = [c for c in catalog if c["category"] == category]
+    # Pokemon Center and "Plus" editions are different products from the
+    # standard ones (caught live Nov 2026: a S$89.90 Standard Perfect Order
+    # ETB matched the S$109.90 Pokemon Center one and alerted as -18%).
+    flags = _edition_flags(title)
+    candidates = [c for c in catalog if c["category"] == category and _edition_flags(c["title"]) == flags]
     if not candidates:
         return None
     norm_title = _normalize_for_match(title, category)
@@ -495,6 +499,232 @@ def get_catalog(language: str) -> list[dict]:
                 return entry["catalog"]
             return []
     return entry["catalog"]
+
+
+# ======================================================================
+# Resale market prices (TCGplayer, via tcgcsv.com) - added Nov 2026
+# ----------------------------------------------------------------------
+# Kenny buys to resell, so the useful question for any listing is "how far
+# below what it resells for is this?", not "is it at official retail?".
+# TCGplayer's market price (USD) for every English and Japanese sealed
+# product is a good resale yardstick: checked 5 Nov 2026 against Carousell
+# asks (e.g. Japanese 30th Celebration box US$204 = ~S$261 vs S$190-280
+# asks). Covers older/out-of-print product the official store no longer
+# sells, which is where most resale margin is.
+# ======================================================================
+TCGCSV = "https://tcgcsv.com/tcgplayer"
+MARKET_CATEGORY_IDS = {"english": 3, "japanese": 85}
+MARKET_REFRESH_HOURS = 24
+DEAL_PCT_OF_MARKET = 75  # alert at or below this % of market
+CHECK_BELOW_PCT_OF_MARKET = 50  # below this, likely a mismatch, a variant's price or a scam
+FALLBACK_USD_SGD = 1.29
+
+# TCGplayer products that aren't a single sealed item a seller would list
+# on its own (cases, displays of bundles/tins, code cards, sets of N...).
+_NOT_SINGLE_SEALED = re.compile(
+    r"\b(code card|case|cases|set of|bundle of|lot|bulk|sleeves?|deck box|binder|playmat|"
+    r"portfolio|pins?|coins?|figure|plush|jumbo|oversized?|poster|stamp|accessor(y|ies))\b"
+    r"|\b(bundle|tin|pack|booster) display\b",
+    re.I,
+)
+
+_PC_RE = re.compile(r"pok[eé]mon cent(er|re)|\bpc\b|\bpkc\b", re.I)
+_PLUS_RE = re.compile(r"\bplus\b", re.I)
+
+
+def _edition_flags(title: str) -> tuple[bool, bool]:
+    """(is Pokemon Center edition, is Plus edition)."""
+    return bool(_PC_RE.search(title)), bool(_PLUS_RE.search(title))
+
+
+def sealed_products_from_group(products: list[dict], prices: list[dict]) -> list[dict]:
+    """Pure: one tcgcsv group's products + prices -> sealed catalog entries
+    {title, category, usd}. Singles carry a "Number" field; sealed don't."""
+    best_price: dict[int, float] = {}
+    for pr in prices:
+        mp = pr.get("marketPrice")
+        if mp:
+            best_price[pr["productId"]] = max(best_price.get(pr["productId"], 0), float(mp))
+    out = []
+    for prod in products:
+        if any(e.get("name") == "Number" for e in prod.get("extendedData") or []):
+            continue
+        name = prod.get("name") or ""
+        usd = best_price.get(prod.get("productId"))
+        if not usd or _NOT_SINGLE_SEALED.search(name):
+            continue
+        category = classify("pokemon " + name)
+        if category is None:
+            continue
+        out.append({"title": name, "category": category, "usd": round(usd, 2)})
+    return out
+
+
+def _tcgcsv_results(url: str) -> list[dict]:
+    resp = requests.get(url, headers=HEADERS, timeout=30)
+    resp.raise_for_status()
+    return resp.json().get("results", [])
+
+
+def fetch_market_catalog(language: str) -> list[dict]:
+    from concurrent.futures import ThreadPoolExecutor
+
+    cat = MARKET_CATEGORY_IDS[language]
+    groups = _tcgcsv_results(f"{TCGCSV}/{cat}/groups")
+
+    def one(group: dict) -> list[dict]:
+        gid = group["groupId"]
+        try:
+            return sealed_products_from_group(
+                _tcgcsv_results(f"{TCGCSV}/{cat}/{gid}/products"),
+                _tcgcsv_results(f"{TCGCSV}/{cat}/{gid}/prices"),
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"[warn] market prices for group {gid} failed: {exc}", file=sys.stderr)
+            return []
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        entries = [e for chunk in pool.map(one, groups) for e in chunk]
+    if len(entries) < 100:
+        raise RuntimeError(f"only {len(entries)} sealed products found")
+    return entries
+
+
+def fetch_usd_sgd_rate() -> float:
+    resp = requests.get(
+        "https://api.frankfurter.dev/v1/latest", params={"base": "USD", "symbols": "SGD"}, timeout=15
+    )
+    resp.raise_for_status()
+    return float(resp.json()["rates"]["SGD"])
+
+
+def _cached(key: str, fetch, refresh_hours: float, default):
+    """Generic version of get_catalog's cache: refresh when stale, fall back
+    to the last good value on failure, never refresh on the Mac."""
+    import time
+
+    cache = _load_catalog_cache()
+    entry = cache.get(key)
+    now = time.time()
+    if MODE == "local":
+        return entry["value"] if entry else default
+    if entry and (now - entry.get("fetched_at", 0)) <= refresh_hours * 3600:
+        return entry["value"]
+    try:
+        value = fetch()
+        cache = _load_catalog_cache()  # re-read: another catalog may have been saved meanwhile
+        cache[key] = {"fetched_at": now, "value": value}
+        _save_catalog_cache(cache)
+        return value
+    except Exception as exc:  # noqa: BLE001
+        print(f"[warn] failed to refresh {key}: {exc}", file=sys.stderr)
+        return entry["value"] if entry else default
+
+
+def get_market_catalogs() -> tuple[dict[str, list[dict]], float]:
+    market = {
+        lang: _cached(f"market_{lang}", lambda lang=lang: fetch_market_catalog(lang), MARKET_REFRESH_HOURS, [])
+        for lang in MARKET_CATEGORY_IDS
+    }
+    rate = _cached("usd_sgd", fetch_usd_sgd_rate, 24, FALLBACK_USD_SGD)
+    return market, float(rate)
+
+
+# Words that say nothing about WHICH product a listing is.
+_LISTING_NOISE = {
+    "instock", "in", "stock", "ready", "new", "brand", "english", "eng", "en", "free",
+    "delivery", "shrink", "po", "preorder", "authentic", "official", "wts", "sale",
+    "cheap", "bb", "card", "cards", "game", "the", "and", "of", "with", "for",
+    "pokemon", "pokémon", "box", "boxes", "condition", "mint", "set", "sg", "only",
+}
+
+
+def find_market_match(title: str, category: str, catalog: list[dict]) -> dict | None:
+    """Like find_catalog_match, plus:
+      - edition flags (Pokemon Center / Plus) must agree;
+      - among full matches, the MOST SPECIFIC entry wins ("Scarlet & Violet
+        151 ETB" -> the 151 ETB, not the base Scarlet & Violet ETB);
+      - short titles ("Pokemon Center 30th ETB", "151 ETB") match the entry
+        that contains all their words with the fewest extras."""
+    flags = _edition_flags(title)
+    candidates = [c for c in catalog if c["category"] == category and _edition_flags(c["title"]) == flags]
+    if not candidates:
+        return None
+    norm_title = _normalize_for_match(title, category)
+    title_words = set(norm_title.split())
+
+    best, best_key = None, (0.0, 0)
+    normed = []
+    for entry in candidates:
+        entry_norm = _normalize_for_match(entry["title"], category)
+        entry_words = set(entry_norm.split())
+        if not entry_words:
+            continue
+        normed.append((entry, entry_words))
+        if f" {entry_norm} " in f" {norm_title} ":
+            score = 1.0
+        else:
+            score = len(entry_words & title_words) / len(entry_words)
+        key = (score, len(entry_words))
+        if score >= 0.8 and key > best_key:
+            best, best_key = entry, key
+    if best:
+        return best
+
+    core = {w for w in title_words if w not in _LISTING_NOISE}
+    if 1 <= len(core) <= 3:
+        fits = [(e, ws) for e, ws in normed if core <= ws]
+        if fits:
+            return min(fits, key=lambda f: len(f[1]))[0]
+    return None
+
+
+def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dict],
+                     usd_sgd: float, chinese_deal_pct: float = 80.0) -> dict | None:
+    """Price one listing against resale value. Returns None when it isn't a
+    sealed product we can identify; otherwise the item with
+    verdict "deal" | "check" | "none"."""
+    if not raw.get("in_stock", True):
+        return None
+    title = raw["title"]
+    category = classify(title)
+    if category is None or names_many_sets(title):
+        return None
+    language = detect_language(title)
+
+    if language == "chinese":
+        match = find_catalog_match(title, category, chinese)
+        if not match:
+            return None
+        ref_sgd, source, deal_pct = float(match["price"]), "local resale list", chinese_deal_pct
+    else:
+        match = find_market_match(title, category, market.get(language, []))
+        if not match:
+            return None
+        ref_sgd = round(match["usd"] * usd_sgd, 2)
+        source, deal_pct = f"TCGplayer US${match['usd']:.2f}", DEAL_PCT_OF_MARKET
+
+    price = float(raw["price"])
+    pct = price / ref_sgd * 100 if ref_sgd else 999
+    if pct < CHECK_BELOW_PCT_OF_MARKET:
+        verdict = "check"
+    elif pct <= deal_pct:
+        verdict = "deal"
+    else:
+        verdict = "none"
+    return {
+        "title": title,
+        "category": category,
+        "language": language,
+        "price": price,
+        "market_sgd": ref_sgd,
+        "market_title": match["title"],
+        "source": source,
+        "pct_of_market": round(pct),
+        "verdict": verdict,
+        "url": _clean_url(raw["url"]),
+        "retailer": raw["target_name"],
+    }
 
 
 # ======================================================================
@@ -1022,16 +1252,36 @@ def _digest_signature(items: list[dict]) -> str:
 # ======================================================================
 # Main run (PRD §8)
 # ======================================================================
+def _build_resale_message(item: dict, official: bool = False) -> str:
+    title = html.escape(item["title"])
+    url = html.escape(item["url"], quote=True)
+    meta = html.escape(
+        f"{LANG_LABELS.get(item['language'], 'English')} · {item['category']} · {item['retailer']}"
+    )
+    priced_as = html.escape(f"{item['market_title']} ({item['source']})")
+    price, mkt, pct = item["price"], item["market_sgd"], item["pct_of_market"]
+    if item["verdict"] == "check":
+        head = f"\u26A0\uFE0F <b>Check: {title}</b>"
+        body = (
+            f"S${price:.2f} is only {pct}% of market S${mkt:.2f}. Probably a different product, "
+            f"a variant's price or a scam, but worth a look."
+        )
+    else:
+        head = (f"\U0001F6CD\uFE0F <b>Official store in stock: {title}</b>" if official
+                else f"\U0001F4B0 <b>Deal: {title}</b>")
+        body = f"S${price:.2f} = {pct}% of market S${mkt:.2f} (S${mkt - price:.0f} below market)"
+        if not official:
+            body += "\nCheck delivery fee, quantity and condition before buying."
+    return f"{head}\n{meta}\n{body}\nPriced as: {priced_as}\n<a href=\"{url}\">View listing</a>"
+
+
 def _run_all_targets(state: dict) -> None:
-    chinese_catalog, resale_deal_pct = load_chinese_prices()
-    catalogs = {
-        "english": get_catalog("english"),
-        "japanese": get_catalog("japanese"),
-        "chinese": chinese_catalog,
-    }
+    chinese_catalog, chinese_deal_pct = load_chinese_prices()
+    market, usd_sgd = get_market_catalogs()
     print(
-        f"[catalogs] english={len(catalogs['english'])} entries, japanese={len(catalogs['japanese'])} entries, "
-        f"chinese={len(catalogs['chinese'])} entries (deal at <= {resale_deal_pct:.0f}% of resale)"
+        f"[market] english={len(market['english'])} sealed products, japanese={len(market['japanese'])}, "
+        f"chinese resale list={len(chinese_catalog)}, USD->SGD {usd_sgd:.4f}; "
+        f"deal <= {DEAL_PCT_OF_MARKET}% of market, check < {CHECK_BELOW_PCT_OF_MARKET}%"
     )
 
     for target in TARGETS:
@@ -1047,60 +1297,54 @@ def _run_all_targets(state: dict) -> None:
             print(f"[error] {target.name}: {exc}")
             continue
 
-        above_msrp_items = []
-        matched = 0
+        official = target.parser == "lazada"
+        priced = deals = checks = 0
+        alertable_now = set()
 
         for raw in raw_listings:
-            item = process_listing(raw, catalogs)
+            item = evaluate_listing(raw, market, chinese_catalog, usd_sgd, chinese_deal_pct)
             if item is None:
                 continue
-            matched += 1
+            priced += 1
+            if official and item["verdict"] == "check":
+                # The official store at retail far below market is a hot
+                # restock, not a mismatch or a scam.
+                item["verdict"] = "deal"
+            if item["verdict"] == "none":
+                continue
+            deals += item["verdict"] == "deal"
+            checks += item["verdict"] == "check"
 
-            verdict = classify_deal(target.parser, item["pct_above"], item["language"], resale_deal_pct)
-            if verdict == "skip":
+            key = f"{item['retailer']}:{item['url']}"
+            alertable_now.add(key)
+            if state["seen"].get(key) == item["price"]:
+                continue  # already alerted at this price
+            # The same Carousell listing often shows up in two searches;
+            # alert once per listing and price, not once per search.
+            if any(k.endswith(":" + item["url"]) and v == item["price"] for k, v in state["seen"].items()):
+                state["seen"][key] = item["price"]
                 continue
 
-            if verdict == "deal":
-                key = f"{item['retailer']}:{item['url']}"
-                if state["seen"].get(key) == item["price"]:
-                    continue  # already alerted at this price
-                # The same Carousell listing often shows up in two searches;
-                # alert once per listing and price, not once per search.
-                if any(k.endswith(":" + item["url"]) and v == item["price"] for k, v in state["seen"].items()):
-                    state["seen"][key] = item["price"]
-                    continue
+            try:
+                send_telegram(_build_resale_message(item, official=official))
+            except Exception as exc:  # noqa: BLE001
+                # Not marked as seen, so it's retried next run.
+                print(f"[error] failed to send alert for {key}: {exc}")
+                continue
+            state["seen"][key] = item["price"]
+            print(f"[alert] {item['verdict']} {key} @ {item['price']} = {item['pct_of_market']}% of market")
 
-                message = _build_individual_message(item)
-                try:
-                    send_telegram(message)
-                except Exception as exc:  # noqa: BLE001
-                    # Deliberately does NOT mark as seen on failure, so it's
-                    # retried next run rather than silently dropped.
-                    print(f"[error] failed to send alert for {key}: {exc}")
-                    continue
-
-                state["seen"][key] = item["price"]
-                print(f"[alert] {key} @ {item['price']} ({item['language']}, {item['pct_above']:+.1f}% vs ref)")
-            else:
-                above_msrp_items.append(item)
+        # Shops (not Carousell): forget items that sold out or stopped
+        # qualifying, so a later restock alerts again.
+        if target.parser != "carousell":
+            prefix = f"{target.name}:"
+            for k in [k for k in state["seen"] if k.startswith(prefix) and k not in alertable_now]:
+                del state["seen"][k]
 
         # One line per target so a site that silently returns nothing (blocked,
         # markup changed) is visible in the run log.
-        print(f"[target] {target.name}: {len(raw_listings)} listings, {matched} matched a reference price")
-
-        if above_msrp_items:
-            signature = _digest_signature(above_msrp_items)
-            if state["digests"].get(target.name) != signature:
-                message = _build_digest_message(target.name, above_msrp_items)
-                try:
-                    send_telegram(message)
-                    state["digests"][target.name] = signature
-                    print(f"[digest] {target.name}: {len(above_msrp_items)} above-MSRP items")
-                except Exception as exc:  # noqa: BLE001
-                    print(f"[error] failed to send digest for {target.name}: {exc}")
-            else:
-                print(f"[digest] {target.name}: unchanged, not re-sent")
-
+        print(f"[target] {target.name}: {len(raw_listings)} listings, {priced} priced, "
+              f"{deals} deals, {checks} to check")
         save_state(state)  # persist after each target, not just at the very end
 
 
