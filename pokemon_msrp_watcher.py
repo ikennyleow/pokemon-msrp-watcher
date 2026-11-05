@@ -10,6 +10,9 @@ compares each listing's price against a LIVE reference price:
   - Japanese-import product -> matched against pokemon-card.com's official
     JPY suggested retail price (box price = pack price x 30), converted to
     SGD via a live exchange rate.
+  - Simplified Chinese product -> matched against a hand-kept list of local
+    RESALE prices in chinese_prices.json (there is no official SG retail
+    price for it). Alerts when a listing is at or below deal_pct of resale.
 
 Listings at or below their matched reference get an INDIVIDUAL Telegram
 alert immediately. Listings above their reference are batched into one
@@ -43,6 +46,7 @@ ROOT = Path(__file__).parent
 STATE_FILE = ROOT / "state.json"
 CATALOG_CACHE_FILE = ROOT / "catalog_cache.json"
 SECRETS_FILE = ROOT / "secrets.json"  # gitignored
+CHINESE_PRICES_FILE = ROOT / "chinese_prices.json"
 
 HEADERS = {
     "User-Agent": (
@@ -115,8 +119,18 @@ def classify(title: str) -> str | None:
 # ======================================================================
 # Language detection (PRD §7.3)
 # ======================================================================
+CHINESE_MARKERS = [
+    "chinese", " cn ", "(cn)", "[cn]", " chn ", "simplified", "s-chinese",
+    "中文", "简体", "簡體",
+]
+
+
 def detect_language(title: str) -> str:
     lowered = title.lower()
+    # Chinese first: these titles often also say e.g. "Japanese art", but a
+    # Chinese marker means the product itself is the Chinese print.
+    if any(m in f" {lowered} " for m in CHINESE_MARKERS):
+        return "chinese"
     japanese_markers = ["japanese", " jap ", " jp ", "(jp)", "jap.", " jpn"]
     if any(m in f" {lowered} " for m in japanese_markers) or lowered.startswith("jap"):
         return "japanese"
@@ -141,6 +155,7 @@ _BOILERPLATE_PATTERNS = [
     r"\bcenter\b", r"\boriginal\b",
     r"\bstandard edition\b",
     r"\bjapanese\b", r"\bjap\b", r"\bjp\b",
+    r"\bchinese\b", r"\bsimplified\b", r"\bcn\b",
     r"\bshrinked?\b", r"\bunshrink(ed)?\b", r"\bcase\b", r"\bsealed\b",
 ]
 
@@ -418,6 +433,23 @@ def _save_catalog_cache(cache: dict) -> None:
     CATALOG_CACHE_FILE.write_text(json.dumps(cache, indent=2))
 
 
+def load_chinese_prices() -> tuple[list[dict], float]:
+    """Hand-kept resale reference list for Chinese product. Read fresh on
+    every run (no network, nothing to cache). Returns (catalog, deal_pct).
+    A missing or broken file just means no Chinese matches this run."""
+    try:
+        data = json.loads(CHINESE_PRICES_FILE.read_text())
+    except Exception as exc:  # noqa: BLE001
+        print(f"[warn] could not read {CHINESE_PRICES_FILE.name}: {exc}", file=sys.stderr)
+        return [], 80.0
+    items = [
+        {"title": i["title"], "category": i["category"], "price": float(i["price"])}
+        for i in data.get("items", [])
+        if i.get("title") and i.get("category") and i.get("price")
+    ]
+    return items, float(data.get("deal_pct", 80))
+
+
 def get_catalog(language: str) -> list[dict]:
     """Returns the cached catalog for "english" or "japanese", refreshing it
     if stale (older than CATALOG_REFRESH_HOURS) or missing. On a refresh
@@ -651,6 +683,11 @@ TARGETS = [
         url="https://www.carousell.sg/search/pokemon%20booster%20box",
         parser="carousell",
     ),
+    Target(
+        name="Carousell - Chinese booster box search",
+        url="https://www.carousell.sg/search/pokemon%20chinese%20booster%20box?sort_by=3",
+        parser="carousell",
+    ),
 ]
 
 
@@ -713,7 +750,7 @@ def process_listing(raw: dict, catalogs: dict[str, list[dict]]) -> dict | None:
     }
 
 
-def classify_deal(parser_name: str, pct_above: float) -> str:
+def classify_deal(parser_name: str, pct_above: float, language: str = "english", resale_deal_pct: float = 80.0) -> str:
     """Returns "deal" (individual alert), "above" (digest), or "skip".
 
     Lazada IS the English reference-price source (§7.1) - when checked as
@@ -725,7 +762,13 @@ def classify_deal(parser_name: str, pct_above: float) -> str:
     Only a STRICT discount below its own reference is a genuine, alertable
     deal for Lazada. Other retailers keep <= 0 as a deal, since an
     independent seller genuinely landing exactly at MSRP is a real
-    coincidence worth flagging."""
+    coincidence worth flagging.
+
+    Chinese references are local RESALE prices, not MSRP, so a listing at
+    the reference is merely fair. It's a deal only at or below
+    resale_deal_pct of resale (e.g. 80%), leaving room to flip it."""
+    if language == "chinese":
+        return "deal" if (100 + pct_above) <= resale_deal_pct else "above"
     if parser_name == "lazada":
         if pct_above == 0:
             return "skip"
@@ -754,6 +797,13 @@ def send_telegram(message: str) -> None:
     resp.raise_for_status()
 
 
+LANG_LABELS = {
+    "english": "English/International",
+    "japanese": "Japanese import",
+    "chinese": "Simplified Chinese",
+}
+
+
 def _build_individual_message(item: dict) -> str:
     # Telegram's HTML parse_mode treats unescaped <, >, & as markup - a raw
     # listing title containing e.g. "<Confirmed 17 May>" broke a prior
@@ -763,7 +813,17 @@ def _build_individual_message(item: dict) -> str:
     category = html.escape(item["category"])
     retailer = html.escape(item["retailer"])
     url = html.escape(item["url"], quote=True)
-    lang_label = "Japanese import" if item["language"] == "japanese" else "English/International"
+    lang_label = LANG_LABELS.get(item["language"], "English/International")
+    if item["language"] == "chinese":
+        pct_of_ref = 100 + item["pct_above"]
+        return (
+            f"\U0001F4B0 <b>Below resale: {title}</b>\n"
+            f"Category: {category} ({lang_label})\n"
+            f"Retailer: {retailer}\n"
+            f"Price: SGD {item['price']:.2f} = {pct_of_ref:.0f}% of SGD {item['reference_price']:.2f} resale\n"
+            f"Check delivery fee and quantity before buying.\n"
+            f"<a href=\"{url}\">View listing</a>"
+        )
     return (
         f"\U0001F6CD️ <b>At/below MSRP: {title}</b>\n"
         f"Category: {category} ({lang_label})\n"
@@ -783,10 +843,14 @@ def _build_digest_message(retailer: str, items: list[dict]) -> str:
     for item in shown:
         title = html.escape(item["title"])
         url = html.escape(item["url"], quote=True)
+        # Chinese references are resale prices, and a Chinese listing can sit
+        # in the digest while below its reference (cheaper than resale but
+        # not cheap enough to flip), so label the reference and sign the %.
+        ref_label = "resale" if item.get("language") == "chinese" else "ref."
         lines.append(
             f"• <a href=\"{url}\">{title}</a>\n"
-            f"  SGD {item['price']:.2f} (ref. SGD {item['reference_price']:.2f}, "
-            f"+{item['pct_above']:.1f}%)"
+            f"  SGD {item['price']:.2f} ({ref_label} SGD {item['reference_price']:.2f}, "
+            f"{item['pct_above']:+.1f}%)"
         )
     if remaining > 0:
         lines.append(f"\n+{remaining} more above MSRP at this retailer.")
@@ -804,11 +868,16 @@ def _digest_signature(items: list[dict]) -> str:
 # Main run (PRD §8)
 # ======================================================================
 def _run_all_targets(state: dict) -> None:
+    chinese_catalog, resale_deal_pct = load_chinese_prices()
     catalogs = {
         "english": get_catalog("english"),
         "japanese": get_catalog("japanese"),
+        "chinese": chinese_catalog,
     }
-    print(f"[catalogs] english={len(catalogs['english'])} entries, japanese={len(catalogs['japanese'])} entries")
+    print(
+        f"[catalogs] english={len(catalogs['english'])} entries, japanese={len(catalogs['japanese'])} entries, "
+        f"chinese={len(catalogs['chinese'])} entries (deal at <= {resale_deal_pct:.0f}% of resale)"
+    )
 
     for target in TARGETS:
         parser_fn = PARSERS.get(target.parser)
@@ -828,7 +897,7 @@ def _run_all_targets(state: dict) -> None:
             if item is None:
                 continue
 
-            verdict = classify_deal(target.parser, item["pct_above"])
+            verdict = classify_deal(target.parser, item["pct_above"], item["language"], resale_deal_pct)
             if verdict == "skip":
                 continue
 
@@ -847,7 +916,7 @@ def _run_all_targets(state: dict) -> None:
                     continue
 
                 state["seen"][key] = item["price"]
-                print(f"[alert] {key} @ {item['price']} (<=MSRP)")
+                print(f"[alert] {key} @ {item['price']} ({item['language']}, {item['pct_above']:+.1f}% vs ref)")
             else:
                 above_msrp_items.append(item)
 
