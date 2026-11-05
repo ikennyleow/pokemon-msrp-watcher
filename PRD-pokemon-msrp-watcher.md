@@ -45,6 +45,11 @@ All retailers are checked on the same shared polling schedule (§9) — there is
 
 **Explicitly not included** (no confirmed listing page found in prior research): Popular/Challenger online, TikTok Shop official storefronts (would need a paid third-party monitoring API), other local/secondary card shops beyond DXCOLLECTION. Any of these can be added later given a confirmed product-category URL.
 
+### 6.1 Where each target runs (added Nov 2026)
+Carousell blocks cloud servers (0 listings from GitHub Actions since Nov 2026, while the same searches work from a home connection). Carousell targets are therefore marked `runs_on="local"` and run on Kenny's Mac every 30 minutes via launchd (`mac/`, `WATCHER_MODE=local`); every other target runs in the GitHub Action. The Mac copy pulls the repo before each run and only reads the catalogs the cloud run commits; it never writes them, and keeps its own gitignored `state_local.json`.
+
+The Mac copy also sends **buyout-lot alerts**: one Telegram message per newly posted collection, binder or bulk lot (S$20–400) from five newest-first Carousell searches. These can't be priced automatically, so the alert is about speed. The title filter (`is_buyout_lot`) was tuned against 103 real listings, since most search results are empty binders, sealed "Binder Collection" products, single cards from sets named "... Collection", or dealers' keyword-stuffed titles. A search's first run only records existing listings, so there's no flood of old listings.
+
 ## 7. MSRP determination
 There are **two** reference catalogs, because English/International and Japanese Pokémon TCG product are genuinely different product lines with different official distributors and no shared official Singapore price to compare against directly.
 

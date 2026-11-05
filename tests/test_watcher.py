@@ -356,3 +356,111 @@ def test_empty_scrape_keeps_cached_catalog(tmp_path, monkeypatch):
     monkeypatch.setattr(w, "fetch_english_catalog", lambda: [])
     assert w.get_catalog("english") == cached
     assert json.loads(cache_file.read_text())["english"]["catalog"] == cached
+
+
+# ---- buyout-lot alerts (Mac / local mode) -----------------------------------
+def test_is_buyout_lot_keeps_real_lots():
+    # Real titles from Carousell, 5 Nov 2026
+    assert w.is_buyout_lot("full pokemon binder", 130)
+    assert w.is_buyout_lot("Vintage Pokemon Cards Lot", 100)
+    assert w.is_buyout_lot("pokemon bulk card", 66)
+    assert w.is_buyout_lot("Album Binder + Pokemon Cards", 25)
+    assert w.is_buyout_lot("Pokemon umbreon espeon leafeon glaceon sylveon flareon vaporeon jolteon gx card lot", 260)
+    assert w.is_buyout_lot("Selling my childhood Pokémon cards 300 cards", 80)
+
+
+def test_is_buyout_lot_drops_accessories_wanted_ads_and_sealed():
+    assert not w.is_buyout_lot("Pokémon Ring Card Binder | 12 Slots, 3x3(900 slots) TCG Collection Binder Pokemon", 25)
+    assert not w.is_buyout_lot("Pokemon Gengar Doodle Art binder non ring 9 pocket toploader binder with zip", 35)
+    assert not w.is_buyout_lot("WTB - English Pokemon Collection Bulk card", 1)
+    assert not w.is_buyout_lot("BUYING ALL SEALED POKEMON PRODUCTS CARDS COLLECTIONS", 100)
+    assert not w.is_buyout_lot("Pokemon Mew ex 151 Ultra Premium Collection PSA 8", 150)
+    assert not w.is_buyout_lot("Pokemon 30th Celebration Chinese Booster Box lot", 85)
+
+
+def test_is_buyout_lot_price_band():
+    assert not w.is_buyout_lot("pokemon bulk card", 5)  # too cheap to be worth a trip
+    assert not w.is_buyout_lot("pokemon whole collection", 2500)  # far over the buying cap
+    assert not w.is_buyout_lot("pokemon whole collection", None)
+
+
+def _fake_listing(lid, title="full pokemon binder", price=130):
+    return {"title": title, "price": price, "url": f"https://www.carousell.sg/p/x-{lid}/?t-id=abc", "in_stock": True}
+
+
+def test_buyout_first_run_records_without_alerting(monkeypatch, tmp_path):
+    monkeypatch.setattr(w, "STATE_FILE", tmp_path / "s.json")
+    sent = []
+    monkeypatch.setattr(w, "send_telegram", sent.append)
+    monkeypatch.setattr(w, "BUYOUT_SEARCHES", [("pokemon binder", "u1")])
+    state = {"seen": {}, "digests": {}}
+    w.run_buyout_searches(state, fetch=lambda url: [_fake_listing(1000001), _fake_listing(1000002)])
+    assert sent == []
+    assert set(state["lots"]["pokemon binder"]) == {"1000001", "1000002"}
+
+    # Next run: only the newly posted listing alerts, once.
+    w.run_buyout_searches(state, fetch=lambda url: [_fake_listing(1000003), _fake_listing(1000001)])
+    assert len(sent) == 1 and "x-1000003" in sent[0]
+    w.run_buyout_searches(state, fetch=lambda url: [_fake_listing(1000003)])
+    assert len(sent) == 1
+
+
+def test_buyout_same_listing_in_two_searches_alerts_once(monkeypatch, tmp_path):
+    monkeypatch.setattr(w, "STATE_FILE", tmp_path / "s.json")
+    sent = []
+    monkeypatch.setattr(w, "send_telegram", sent.append)
+    monkeypatch.setattr(w, "BUYOUT_SEARCHES", [("a", "u1"), ("b", "u2")])
+    state = {"seen": {}, "digests": {}, "lots": {"a": [], "b": []}}
+    w.run_buyout_searches(state, fetch=lambda url: [_fake_listing(2000001)])
+    assert len(sent) == 1
+
+
+def test_buyout_failed_send_is_retried(monkeypatch, tmp_path):
+    monkeypatch.setattr(w, "STATE_FILE", tmp_path / "s.json")
+    monkeypatch.setattr(w, "BUYOUT_SEARCHES", [("a", "u1")])
+
+    def boom(msg):
+        raise RuntimeError("telegram down")
+
+    monkeypatch.setattr(w, "send_telegram", boom)
+    state = {"seen": {}, "digests": {}, "lots": {"a": []}}
+    w.run_buyout_searches(state, fetch=lambda url: [_fake_listing(3000001)])
+    assert "3000001" not in state["lots"]["a"]
+
+
+def test_targets_split_between_cloud_and_mac():
+    local = [t.name for t in w.TARGETS if t.runs_on == "local"]
+    assert local and all("Carousell" in n for n in local)
+    assert all(t.runs_on == "cloud" for t in w.TARGETS if "Carousell" not in t.name)
+
+
+def test_lot_message_escapes_and_strips_tracking():
+    msg = w._build_lot_message(_fake_listing(4000001, title="pokemon <binder> & lot"), "pokemon binder")
+    assert "&lt;binder&gt; &amp; lot" in msg
+    assert "t-id" not in msg
+
+
+def test_is_buyout_lot_rejects_real_non_lots_from_search_results():
+    # All real titles from the 5 Nov 2026 newest-first searches that a
+    # looser filter let through.
+    for title, price in [
+        ("Pokemon 30th Celebrations Binder Collection", 90),  # sealed product
+        ("Pokemon White Flare Binder Collection – English", 98),
+        ("Pokemon 30th Anniversary Trading Card Binders", 20),  # empty binder
+        ("Black Leather Pokemon Trading Card Binder", 59),
+        ("We're Goomy! Zip Binder (Pokemon Centre)", 98),
+        ("Pokemon Poliwrath 9/75 Rare Legendary Collection card", 50),  # single from a set
+        ("Flareon ex RC28 & Sylveon ex RC32 / Radiant Collection / Pokemon Card", 350),
+        ("Pokemon Personality Test Vintage Old Back card", 20),
+        ("Gengar Old Maid Japanese Pokemon Card", 25),
+        ("Pokémon 151 Pokemon card clearance quitting sales wts prismatic evolution terastal festival", 23),
+        ("Pokemon 30th Celebrations Anniversary list Ultra premium collection", 250),
+    ]:
+        assert not w.is_buyout_lot(title, price), title
+
+
+def test_is_buyout_lot_keeps_real_lots_from_search_results():
+    assert w.is_buyout_lot("Bundle of random old pokemon cards, commons and commons", 40)
+    assert w.is_buyout_lot("Pokemon card clearance", 22)
+    assert w.is_buyout_lot("Pokemon Reverse Holo Lot (Mid-era) card", 88)
+    assert w.is_buyout_lot("Pokemon Cards AR lot card", 50)
