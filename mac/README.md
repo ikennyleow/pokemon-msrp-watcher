@@ -7,8 +7,8 @@ sends alerts to the same Telegram bot.
 It checks:
 
 - **Sealed boxes**: the Carousell booster box and Chinese booster box
-  searches, priced the same way as the GitHub run (official price for
-  English and Japanese, resale list for Chinese).
+  searches, priced against resale value the same way as the GitHub run
+  (TCGplayer market for English and Japanese, resale list for Chinese).
 - **Buyout lots**: newest listings for "pokemon binder", "pokemon
   collection", "old pokemon cards", "pokemon cards lot" and "pokemon cards
   clearance". You get one message per newly posted lot (S$20–400) with a

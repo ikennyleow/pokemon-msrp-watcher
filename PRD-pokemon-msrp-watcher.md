@@ -101,6 +101,14 @@ For every listing with both a category match and a confident catalog match, comp
 ### 7.7 Simplified Chinese reference list (added Nov 2026)
 Simplified Chinese sealed product has no official Singapore retail price, so it is matched against a short hand-kept list of local **resale** prices in `chinese_prices.json` (one entry per name sellers use, e.g. "30th Celebration" and "30th Anniversary"). Language detection tags a listing Chinese when its title says "chinese", "simplified", "CN", "中文" or "简体" (checked before the Japanese markers). Because the reference is a resale price rather than MSRP, a Chinese listing gets an individual alert only at or below `deal_pct` (default 80%) of it, leaving room to resell; anything above that goes to the digest with the reference labelled "resale". A dedicated Carousell search for Chinese booster boxes (newest first) is included in the targets.
 
+### 7.8 Resale pricing replaces MSRP as the alert yardstick (Nov 2026)
+A review against 137 real Carousell listings (5 Nov 2026) found the MSRP yardstick missed most of what matters for a resale business: the English reference only covered the ~19 products the official store currently sells, so older/out-of-print sealed product (where most margin is) was invisible, and Japanese boxes always read as "+80-120% above MSRP". Listings are now priced against **TCGplayer market prices** (tcgcsv.com, all English and Japanese sealed products, refreshed daily, ~800 EN / ~150 JP), converted to SGD:
+- **Deal**: at or below 75% of market and at least S$20 below it.
+- **Check**: under 50% of market. Usually a mismatch, a variant's price or a scam; still worth a look. Not used for the official store, where retail far below market is a hot restock.
+- **Official store**: alerts only after its product page confirms it's in stock (the store's grid shows sold-out items like available ones), and again after each restock.
+- Matching requires Pokemon Center / Plus / Mini editions and edition numbers (30th, 25th, 151) to agree, uses TCGplayer set codes (M6a, SV8a) when a title has one, keeps variant names TCGplayer writes in brackets, folds common naming variants (Anniversary/Celebration, Festival/Fest, plurals, "ex"), and skips titles naming 2+ sets and non-sealed listings (graded, empty, opened, accessories).
+- The JPY-MSRP catalog (§7.2) and above-MSRP digests (§8.10) are no longer used for alerts.
+
 ## 8. Functional requirements
 1. **Refresh reference catalogs**: scrape the Lazada English catalog (§7.1) and the pokemon-card.com Japanese catalog (§7.2, including the JPY→SGD rate and box-price derivation), caching both, on the schedule in §7.1/§7.2.
 2. **Fetch**: for each configured retailer target, retrieve current page content, on the shared polling schedule (§9). JS-rendered targets (Lazada, Carousell) need a headless-browser fetch, not plain HTTP GET.

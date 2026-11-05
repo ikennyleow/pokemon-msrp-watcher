@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """
-Pokemon TCG MSRP Watcher (Singapore) - v2
+Pokemon TCG MSRP Watcher (Singapore) - v3
 -------------------------------------------
-Checks Singapore retailer product pages for sealed Pokemon TCG product and
-compares each listing's price against a LIVE reference price:
+Watches Singapore listings of sealed Pokemon TCG product and alerts on
+Telegram when one is worth buying to RESELL:
 
-  - English/International product -> matched against Pokemon Center's
-    official SG storefront (Pokemon Store Online Singapore on Lazada).
-  - Japanese-import product -> matched against pokemon-card.com's official
-    JPY suggested retail price (box price = pack price x 30), converted to
-    SGD via a live exchange rate.
-  - Simplified Chinese product -> matched against a hand-kept list of local
-    RESALE prices in chinese_prices.json (there is no official SG retail
-    price for it). Alerts when a listing is at or below deal_pct of resale.
+  - English and Japanese product -> priced against TCGplayer's market price
+    (via tcgcsv.com, refreshed daily) for that exact sealed product,
+    converted to SGD. "Deal" = at or below 75% of market and at least S$20
+    below it; "Check" = under 50% (usually a different product, a variant's
+    price or a scam, but worth a look).
+  - Simplified Chinese product -> priced against a hand-kept list of local
+    resale prices in chinese_prices.json.
+  - The official Pokemon Store on Lazada -> alerts when an item is in stock
+    (checked on its product page) at a retail price well below market, i.e.
+    a hot restock, and again whenever it restocks.
 
-Listings at or below their matched reference get an INDIVIDUAL Telegram
-alert immediately. Listings above their reference are batched into one
-per-retailer DIGEST message (closest-to-MSRP first, capped, with % above
-shown), re-sent only when that digest's contents actually change. Listings
-with no confident catalog match are ignored entirely.
+Carousell is checked from Kenny's Mac (WATCHER_MODE=local, see mac/), which
+also sends one alert per newly posted buyout lot.
 
 No cart automation, no stored credentials beyond the Telegram bot token -
 every alert is just a link to the listing; checkout is always manual.
@@ -127,7 +126,7 @@ def classify(title: str) -> str | None:
 # Language detection (PRD §7.3)
 # ======================================================================
 CHINESE_MARKERS = [
-    "chinese", " cn ", "(cn)", "[cn]", " chn ", "simplified", "s-chinese",
+    "chinese", " cn ", "(cn)", "[cn]", " chn ", "[chi]", "(chi)", "simplified", "s-chinese",
     "中文", "简体", "簡體",
 ]
 
@@ -310,6 +309,20 @@ def _fetch_lazada_raw_listings() -> list[dict]:
 
             listings.append({"title": title, "price": price, "url": url, "in_stock": in_stock})
     return listings
+
+
+def lazada_product_in_stock(url: str) -> bool:
+    """The store's product grid shows sold-out items exactly like available
+    ones (confirmed 5 Nov 2026: every item checked said "Out of stock" only on
+    its own product page). In stock = a buy button and no "out of stock".
+    Anything unclear counts as out of stock, so no alert is sent."""
+    try:
+        text = BeautifulSoup(fetch_rendered_html(url, wait_ms=3000), "html.parser").get_text(" ").lower()
+    except Exception as exc:  # noqa: BLE001
+        print(f"[warn] stock check failed for {url}: {exc}", file=sys.stderr)
+        return False
+    has_buy_button = "add to cart" in text or "buy now" in text
+    return has_buy_button and "out of stock" not in text
 
 
 def fetch_english_catalog() -> list[dict]:
@@ -516,6 +529,7 @@ TCGCSV = "https://tcgcsv.com/tcgplayer"
 MARKET_CATEGORY_IDS = {"english": 3, "japanese": 85}
 MARKET_REFRESH_HOURS = 24
 DEAL_PCT_OF_MARKET = 75  # alert at or below this % of market
+MIN_GAP_SGD = 20  # ...and at least this far below it, so cheap packs don't alert
 CHECK_BELOW_PCT_OF_MARKET = 50  # below this, likely a mismatch, a variant's price or a scam
 FALLBACK_USD_SGD = 1.29
 
@@ -530,14 +544,16 @@ _NOT_SINGLE_SEALED = re.compile(
 
 _PC_RE = re.compile(r"pok[eé]mon cent(er|re)|\bpc\b|\bpkc\b", re.I)
 _PLUS_RE = re.compile(r"\bplus\b", re.I)
+_MINI_RE = re.compile(r"\bmini\b", re.I)
 
 
-def _edition_flags(title: str) -> tuple[bool, bool]:
-    """(is Pokemon Center edition, is Plus edition)."""
-    return bool(_PC_RE.search(title)), bool(_PLUS_RE.search(title))
+def _edition_flags(title: str) -> tuple[bool, bool, bool]:
+    """(Pokemon Center edition, Plus edition, Mini). Caught live: a S$39.90
+    "30th Celebration ex Tin" matched the "30th Celebration Mini Tin"."""
+    return bool(_PC_RE.search(title)), bool(_PLUS_RE.search(title)), bool(_MINI_RE.search(title))
 
 
-def sealed_products_from_group(products: list[dict], prices: list[dict]) -> list[dict]:
+def sealed_products_from_group(products: list[dict], prices: list[dict], code: str = "") -> list[dict]:
     """Pure: one tcgcsv group's products + prices -> sealed catalog entries
     {title, category, usd}. Singles carry a "Number" field; sealed don't."""
     best_price: dict[int, float] = {}
@@ -556,7 +572,10 @@ def sealed_products_from_group(products: list[dict], prices: list[dict]) -> list
         category = classify("pokemon " + name)
         if category is None:
             continue
-        out.append({"title": name, "category": category, "usd": round(usd, 2)})
+        entry = {"title": name, "category": category, "usd": round(usd, 2)}
+        if code:
+            entry["code"] = code.lower()
+        out.append(entry)
     return out
 
 
@@ -588,6 +607,7 @@ def fetch_market_catalog(language: str) -> list[dict]:
             return sealed_products_from_group(
                 _tcgcsv_results(f"{TCGCSV}/{cat}/{gid}/products"),
                 _tcgcsv_results(f"{TCGCSV}/{cat}/{gid}/prices"),
+                group.get("abbreviation") or "",
             )
         except Exception as exc:  # noqa: BLE001
             print(f"[warn] market prices for group {gid} failed: {exc}", file=sys.stderr)
@@ -643,50 +663,113 @@ def get_market_catalogs() -> tuple[dict[str, list[dict]], float]:
 # Words that say nothing about WHICH product a listing is.
 _LISTING_NOISE = {
     "instock", "in", "stock", "ready", "new", "brand", "english", "eng", "en", "free",
-    "delivery", "shrink", "po", "preorder", "authentic", "official", "wts", "sale",
-    "cheap", "bb", "card", "cards", "game", "the", "and", "of", "with", "for",
-    "pokemon", "pokémon", "box", "boxes", "condition", "mint", "set", "sg", "only",
+    "delivery", "shrink", "po", "preorder", "authentic", "official", "wts", "wtt", "sale",
+    "cheap", "cheapest", "bb", "card", "cards", "game", "the", "and", "of", "with", "for",
+    "pokemon", "pokémon", "box", "boxe", "condition", "mint", "set", "sg", "only",
+    "sleeved", "loose", "random", "series", "unshrink", "available", "now", "selling",
+    "shopbased", "shop", "based", "carousell", "preferred", "merchant", "great",
 }
+# An entry whose name is ONLY these words can't identify a product
+# (caught live: "Super-Premium Collection [Mew & Mewtwo]" reduced to "super"
+# and matched every "Super Premium Collection" listing at S$6,000).
+_GENERIC_ENTRY_WORDS = {"super", "ultra", "premium", "special", "deluxe", "mini", "collection",
+                        "sleeved", "booster", "pack", "box", "bundle", "tin"}
+_EDITION_NUMBER = re.compile(r"^(\d+(st|nd|rd|th)|151)$")
+_ALIASES = [(re.compile(r"\banniversary\b", re.I), "celebration"),
+            (re.compile(r"\bfestival\b", re.I), "fest")]
+
+
+def _market_words(text: str, category: str, keep_brackets: bool = False) -> list[str]:
+    """Normalised words for market matching. Variant names TCGplayer puts in
+    brackets ("[Koraidon]", "[Day]") are kept for catalog entries; plurals,
+    "ex" and common naming variants (Anniversary/Celebration,
+    Festival/Fest) are folded so sellers' wording still matches."""
+    if keep_brackets:
+        text = re.sub(r"[\[\]()]", " ", text)
+    for pattern, repl in _ALIASES:
+        text = pattern.sub(repl, text)
+    words = []
+    for w in _normalize_for_match(text, category).split():
+        if w == "ex":
+            continue
+        if len(w) > 3 and w.endswith("s") and not w.endswith("ss"):
+            w = w[:-1]
+        words.append(w)
+    return words
+
+
+def _prepared_entry(entry: dict) -> dict:
+    """Cache each catalog entry's normalised words (computed once per run)."""
+    if "_words" not in entry:
+        words = _market_words(entry["title"], entry["category"], keep_brackets=True)
+        entry["_words"] = words
+        entry["_wordset"] = set(words)
+        entry["_numbers"] = {w for w in words if _EDITION_NUMBER.match(w)}
+        entry["_generic"] = all(w in _GENERIC_ENTRY_WORDS for w in words)
+        entry["_flags"] = _edition_flags(entry["title"])
+    return entry
 
 
 def find_market_match(title: str, category: str, catalog: list[dict]) -> dict | None:
-    """Like find_catalog_match, plus:
-      - edition flags (Pokemon Center / Plus) must agree;
-      - among full matches, the MOST SPECIFIC entry wins ("Scarlet & Violet
-        151 ETB" -> the 151 ETB, not the base Scarlet & Violet ETB);
-      - short titles ("Pokemon Center 30th ETB", "151 ETB") match the entry
-        that contains all their words with the fewest extras."""
+    """Match a listing to a TCGplayer sealed product. Beyond the basic
+    word-overlap match:
+      - Pokemon Center / Plus editions must agree;
+      - edition numbers (30th, 25th, 151) must agree;
+      - a set code in the title (M6a, SV8a...) narrows to that set;
+      - among full matches, the most specific entry wins;
+      - short titles ("151 ETB") match the entry containing all their words
+        with the fewest extras."""
     flags = _edition_flags(title)
-    candidates = [c for c in catalog if c["category"] == category and _edition_flags(c["title"]) == flags]
+    words = _market_words(title, category)
+    title_words = set(words)
+    numbers = {w for w in title_words if _EDITION_NUMBER.match(w)}
+    norm_title = " ".join(words)
+
+    candidates = []
+    for entry in catalog:
+        if entry["category"] != category:
+            continue
+        e = _prepared_entry(entry)
+        if e["_flags"] != flags or e["_generic"] or not e["_words"]:
+            continue
+        candidates.append(e)
+    # A set code in the title (M6a, SV8a) is the strongest signal there is:
+    # trust it over the edition-number check.
+    codes = {e.get("code") for e in candidates if e.get("code") and e["code"] in title_words}
+    if codes:
+        candidates = [e for e in candidates if e.get("code") in codes]
+    else:
+        candidates = [e for e in candidates if e["_numbers"] == numbers]
     if not candidates:
         return None
-    norm_title = _normalize_for_match(title, category)
-    title_words = set(norm_title.split())
 
     best, best_key = None, (0.0, 0)
-    normed = []
-    for entry in candidates:
-        entry_norm = _normalize_for_match(entry["title"], category)
-        entry_words = set(entry_norm.split())
-        if not entry_words:
-            continue
-        normed.append((entry, entry_words))
-        if f" {entry_norm} " in f" {norm_title} ":
+    for e in candidates:
+        if f" {' '.join(e['_words'])} " in f" {norm_title} ":
             score = 1.0
         else:
-            score = len(entry_words & title_words) / len(entry_words)
-        key = (score, len(entry_words))
+            score = len(e["_wordset"] & title_words) / len(e["_wordset"])
+        key = (score, len(e["_wordset"]))
         if score >= 0.8 and key > best_key:
-            best, best_key = entry, key
+            best, best_key = e, key
     if best:
         return best
 
-    core = {w for w in title_words if w not in _LISTING_NOISE}
-    if 1 <= len(core) <= 3:
-        fits = [(e, ws) for e, ws in normed if core <= ws]
+    core = {w for w in title_words if w not in _LISTING_NOISE and w not in codes}
+    if 1 <= len(core) <= 3 and not core <= _GENERIC_ENTRY_WORDS:
+        fits = [e for e in candidates if core <= e["_wordset"]]
         if fits:
-            return min(fits, key=lambda f: len(f[1]))[0]
+            return min(fits, key=lambda e: len(e["_wordset"]))
     return None
+
+
+# Listings that aren't one sealed product as sold: graded cards, empty or
+# opened boxes, accessories, wanted ads, code cards.
+_NOT_SEALED_LISTING = re.compile(
+    r"\b(psa|bgs|cgc|graded|slab|no packs?|empty|box only|opened|acrylic|protector|"
+    r"magnetic|accessor(y|ies)|code cards?|codes|wtb|looking for)\b",
+    re.I,
+)
 
 
 def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dict],
@@ -698,7 +781,11 @@ def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dic
         return None
     title = raw["title"]
     category = classify(title)
-    if category is None or names_many_sets(title):
+    if category is None or _NOT_SEALED_LISTING.search(title):
+        return None
+    # Two or more set names = a dealer's list or keyword stuffing, not one
+    # product (caught live: "pitch perfect phantasmal flames 30th booster box").
+    if len({m.lower() for m in _SET_NAMES.findall(title)}) >= 2:
         return None
     language = detect_language(title)
 
@@ -718,7 +805,7 @@ def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dic
     pct = price / ref_sgd * 100 if ref_sgd else 999
     if pct < CHECK_BELOW_PCT_OF_MARKET:
         verdict = "check"
-    elif pct <= deal_pct:
+    elif pct <= deal_pct and ref_sgd - price >= MIN_GAP_SGD:
         verdict = "deal"
     else:
         verdict = "none"
@@ -1326,6 +1413,10 @@ def _run_all_targets(state: dict) -> None:
             checks += item["verdict"] == "check"
 
             key = f"{item['retailer']}:{item['url']}"
+            if official and state["seen"].get(key) != item["price"] and not lazada_product_in_stock(item["url"]):
+                # Sold out: not alertable now, so the restock alerts later.
+                deals -= item["verdict"] == "deal"
+                continue
             alertable_now.add(key)
             if state["seen"].get(key) == item["price"]:
                 continue  # already alerted at this price
