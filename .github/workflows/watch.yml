@@ -46,5 +46,5 @@ jobs:
           git config user.email "actions@github.com"
           git add state.json catalog_cache.json
           git diff --staged --quiet || git commit -m "update state [skip ci]"
-          git pull --rebase origin main
+          git pull --rebase origin "${GITHUB_REF_NAME}"
           git push

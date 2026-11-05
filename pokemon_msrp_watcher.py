@@ -560,10 +560,20 @@ def sealed_products_from_group(products: list[dict], prices: list[dict]) -> list
     return out
 
 
-def _tcgcsv_results(url: str) -> list[dict]:
-    resp = requests.get(url, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
-    return resp.json().get("results", [])
+def _tcgcsv_results(url: str, tries: int = 4) -> list[dict]:
+    """tcgcsv rate-limits bursts with 401/429 (caught on the first live run:
+    77 Japanese sets refused at 8 parallel requests). Back off and retry."""
+    import time
+
+    for attempt in range(tries):
+        resp = requests.get(url, headers=HEADERS, timeout=30)
+        if resp.status_code in (401, 403, 429) or resp.status_code >= 500:
+            if attempt < tries - 1:
+                time.sleep(2 * (attempt + 1) ** 2)
+                continue
+        resp.raise_for_status()
+        return resp.json().get("results", [])
+    return []
 
 
 def fetch_market_catalog(language: str) -> list[dict]:
@@ -583,7 +593,7 @@ def fetch_market_catalog(language: str) -> list[dict]:
             print(f"[warn] market prices for group {gid} failed: {exc}", file=sys.stderr)
             return []
 
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=3) as pool:
         entries = [e for chunk in pool.map(one, groups) for e in chunk]
     if len(entries) < 100:
         raise RuntimeError(f"only {len(entries)} sealed products found")
