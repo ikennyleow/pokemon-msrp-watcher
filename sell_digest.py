@@ -41,6 +41,7 @@ TRACKER_CATEGORIES = {
     "Elite Trainer Box": "Elite Trainer Box",
     "Booster Bundle": "Booster bundle",
     "Ultra Premium Collection": "Premium/Special collection",
+    "Super-Premium Collection": "Premium/Special collection",
     "Tin": "Tin",
 }
 
