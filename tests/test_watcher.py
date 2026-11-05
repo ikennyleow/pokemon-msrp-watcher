@@ -342,3 +342,17 @@ def test_load_chinese_prices_reads_repo_file():
 def test_load_chinese_prices_missing_file_is_harmless(tmp_path, monkeypatch):
     monkeypatch.setattr(w, "CHINESE_PRICES_FILE", tmp_path / "nope.json")
     assert w.load_chinese_prices() == ([], 80.0)
+
+
+# ---- catalog refresh resilience --------------------------------------------
+def test_empty_scrape_keeps_cached_catalog(tmp_path, monkeypatch):
+    # Regression (Nov 2026): Lazada returned nothing from a GitHub runner and
+    # the good cached English catalog was overwritten with an empty list.
+    import json
+    cache_file = tmp_path / "catalog_cache.json"
+    cached = [{"title": "Chaos Rising", "category": "Elite Trainer Box", "price": 109.9}]
+    cache_file.write_text(json.dumps({"english": {"fetched_at": 0, "catalog": cached}}))
+    monkeypatch.setattr(w, "CATALOG_CACHE_FILE", cache_file)
+    monkeypatch.setattr(w, "fetch_english_catalog", lambda: [])
+    assert w.get_catalog("english") == cached
+    assert json.loads(cache_file.read_text())["english"]["catalog"] == cached
