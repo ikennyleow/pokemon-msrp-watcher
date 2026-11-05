@@ -146,3 +146,11 @@ def test_listings_must_be_the_same_tcgplayer_product_as_the_holding():
     assert sd.match_product("Pokémon Scarlet & Violet Destined Rivals Elite Trainer Box (ETB)", products, market) is None
     assert sd.match_product("Pokémon Scarlet & Violet Paldean Fates Elite Trainer Box (ETB)", products, market) is None
     assert sd.match_product("Pokemon Scarlet & Violet Base Set ETB Koraidon", products, market) is products[0]
+
+
+def test_super_premium_collection_category_is_sellable():
+    products = sd.holding_products([
+        {"name": "Charizard ex", "category": "Super-Premium Collection", "quantity": 1, "currentPrice": 135.74},
+    ], 1.3)
+    assert products[0]["title"] == "Charizard ex Super-Premium Collection"
+    assert products[0]["category"] == "Premium/Special collection"
