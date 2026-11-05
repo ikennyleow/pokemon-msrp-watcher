@@ -760,11 +760,20 @@ _NOT_A_LOT = re.compile(
 # Dealers stuff titles with set names to catch every search; a real lot
 # rarely names 3+ sets.
 _SET_NAMES = re.compile(
-    r"\b(151|prismatic|terastal|mega brave|mega symphonia|mega dream|ascended heroes|"
-    r"perfect order|phantasmal|chaos rising|pitch black|inferno x|abyss eye|"
-    r"evolving skies|shiny treasure|25th|30th|surging sparks|stellar crown)\b",
+    r"\b(151|prismatic|terr?astal|terestal|mega brave|mega symphonia|mega dream|"
+    r"ascended heroes|perfect order|phantasmal|chaos rising|pitch black|inferno x|"
+    r"abyss eye|ninja spinner|glory of team rocket|vstar universe|black bolt|"
+    r"white flare|destined rivals|journey together|evolving skies|shiny treasure|"
+    r"crown zenith|lost origin|silver tempest|25th|30th|surging sparks|stellar crown)\b",
     re.I,
 )
+
+
+def names_many_sets(title: str) -> bool:
+    """True for titles naming 3+ sets: a dealer's price list ("Japanese
+    booster box Abyss Eye / Ninja Spinner / Mega Dream / ...") with one
+    "from" price, or keyword stuffing. Neither can be priced as one product."""
+    return len({m.lower() for m in _SET_NAMES.findall(title)}) >= 3
 
 
 def is_buyout_lot(title: str, price: float | None) -> bool:
@@ -774,7 +783,7 @@ def is_buyout_lot(title: str, price: float | None) -> bool:
         return False
     if _NOT_A_LOT.search(title):
         return False
-    if len({m.lower() for m in _SET_NAMES.findall(title)}) >= 3:
+    if names_many_sets(title):
         return False
     return bool(_LOT_STRONG.search(title)) or bool(
         _LOT_CONTAINER.search(title) and _HAS_CARDS.search(title)
@@ -867,6 +876,11 @@ def process_listing(raw: dict, catalogs: dict[str, list[dict]]) -> dict | None:
     title = raw["title"]
     category = classify(title)
     if category is None:
+        return None
+
+    # Caught live 5 Nov 2026: a dealer's list of a dozen Japanese boxes at a
+    # "from" S$85 price matched one set and alerted as below MSRP.
+    if names_many_sets(title):
         return None
 
     language = detect_language(title)
@@ -1050,6 +1064,11 @@ def _run_all_targets(state: dict) -> None:
                 key = f"{item['retailer']}:{item['url']}"
                 if state["seen"].get(key) == item["price"]:
                     continue  # already alerted at this price
+                # The same Carousell listing often shows up in two searches;
+                # alert once per listing and price, not once per search.
+                if any(k.endswith(":" + item["url"]) and v == item["price"] for k, v in state["seen"].items()):
+                    state["seen"][key] = item["price"]
+                    continue
 
                 message = _build_individual_message(item)
                 try:
