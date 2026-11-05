@@ -817,3 +817,18 @@ def test_single_cards_with_stuffed_lot_keywords_are_not_lots():
     assert w.is_buyout_lot("Pokemon Pokémon Charizard V Lot (4 Cards)", 240)
     assert w.is_buyout_lot("Pokemon clearance lot 092/171 Gardevoir + 040/100 Kirlia", 40)
     assert w.is_buyout_lot("Pokemon bulk lot 050/PCG-P promos x5", 60)
+
+
+def test_price_lists_and_loose_packs_are_skipped():
+    # Real "check" alerts from the 5 Nov 16:14 run
+    for title in [
+        "STREAMER-RATE 30th Celebration Loose pack English 100% unfiltered untampered bulk rate Pokémon "
+        "Pokemon TCG broken from ETB blister tin",
+        "(9-10th November arrival) Pokemon Delta Reign products (Elite Trainer Box, Booster Bundle, "
+        "Booster Box, Sleeves)",
+    ]:
+        assert w.evaluate_listing(_raw(title, 8.3), MARKET_2, [], 1.3) is None, title
+    # One product, mentioned with its contents, still counts
+    item = w.evaluate_listing(_raw("Pokémon Center 30th Celebration Elite Trainer Box (ETB) 9 booster packs", 150),
+                              MARKET_2, [], 1.3)
+    assert item is not None and item["verdict"] == "deal"
