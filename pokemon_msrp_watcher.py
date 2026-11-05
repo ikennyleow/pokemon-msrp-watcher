@@ -776,9 +776,28 @@ def find_market_match(title: str, category: str, catalog: list[dict]) -> dict | 
 # opened boxes, accessories, wanted ads, code cards.
 _NOT_SEALED_LISTING = re.compile(
     r"\b(psa|bgs|cgc|graded|slab|no packs?|empty|box only|opened|acrylic|protector|"
-    r"magnetic|accessor(y|ies)|code cards?|codes|wtb|looking for)\b",
+    r"magnetic|accessor(y|ies)|code cards?|codes|wtb|looking for|loose packs?|broken from)\b",
     re.I,
 )
+
+# Product types a title can name. A title naming 3+ is a shop's price list
+# with one "from" price, not one product (caught live 5 Nov 2026: "Delta
+# Reign products (Elite Trainer Box, Booster Bundle, Booster Box, Sleeves)"
+# at S$8.30 was sent as a "check" alert).
+_PRODUCT_TYPES = {
+    "etb": re.compile(r"\b(elite trainer box(es)?|etbs?)\b", re.I),
+    "bundle": re.compile(r"\bbooster bundles?\b", re.I),
+    "box": re.compile(r"\bbooster (display )?box(es)?\b", re.I),
+    "tin": re.compile(r"\btins?\b", re.I),
+    "blister": re.compile(r"\bblisters?\b", re.I),
+    "pack": re.compile(r"\b(booster )?packs?\b(?! ?display)", re.I),
+    "collection": re.compile(r"\b(premium collection|upc|collection box)\b", re.I),
+    "sleeves": re.compile(r"\bsleeves?\b", re.I),
+}
+
+
+def names_many_product_types(title: str) -> bool:
+    return sum(1 for rx in _PRODUCT_TYPES.values() if rx.search(title)) >= 3
 
 
 def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dict],
@@ -790,7 +809,7 @@ def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dic
         return None
     title = raw["title"]
     category = classify(title)
-    if category is None or _NOT_SEALED_LISTING.search(title):
+    if category is None or _NOT_SEALED_LISTING.search(title) or names_many_product_types(title):
         return None
     # Two or more set names = a dealer's list or keyword stuffing, not one
     # product (caught live: "pitch perfect phantasmal flames 30th booster box").
