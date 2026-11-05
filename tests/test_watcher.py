@@ -805,3 +805,15 @@ def test_lazada_empty_after_retries_is_an_error(monkeypatch):
     import pytest
     with pytest.raises(RuntimeError):
         w.check_lazada(w.Target(name="Official", url="u", parser="lazada"))
+
+
+def test_single_cards_with_stuffed_lot_keywords_are_not_lots():
+    # Real listing, 5 Nov 2026
+    assert not w.is_buyout_lot(
+        "2005 Vintage Jirachi Pokepark 050/PCG-P Promo Japanese Pokemon Card Not 30th Anniversary "
+        "Celebrations SIR SAR Ex Bulk Clearance", 60)
+    assert not w.is_buyout_lot("Charizard ex 151 199/165 SAR pokemon clearance", 120)
+    # Still lots: a card count, or several card numbers
+    assert w.is_buyout_lot("Pokemon Pokémon Charizard V Lot (4 Cards)", 240)
+    assert w.is_buyout_lot("Pokemon clearance lot 092/171 Gardevoir + 040/100 Kirlia", 40)
+    assert w.is_buyout_lot("Pokemon bulk lot 050/PCG-P promos x5", 60)

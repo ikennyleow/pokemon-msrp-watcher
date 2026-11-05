@@ -1123,6 +1123,20 @@ def names_many_sets(title: str) -> bool:
     return len({m.lower() for m in _SET_NAMES.findall(title)}) >= 3
 
 
+# A single card's number: "050/PCG-P", "149/165", "SV-P 242".
+_CARD_NUMBER = re.compile(r"\b\d{1,3}/(\d{2,3}|[a-z]{1,4}(-[a-z])?)\b", re.I)
+# Anything that says the listing has several cards: "(4 cards)", "x3", "50pcs".
+_CARD_COUNT = re.compile(r"\b\d+\s*(cards?|pcs|pieces)\b|\bx\s?\d+\b|\b\d+\s?x\b|\blot of \d+", re.I)
+
+
+def looks_like_single_card(title: str) -> bool:
+    """One card number and no card count = one card, whatever else the
+    title says. Caught live 5 Nov 2026: "2005 Vintage Jirachi Pokepark
+    050/PCG-P Promo ... Not 30th Anniversary Celebrations SIR SAR Ex Bulk
+    Clearance" was sent as a buyout lot because of the stuffed keywords."""
+    return len(_CARD_NUMBER.findall(title)) == 1 and not _CARD_COUNT.search(title)
+
+
 def is_buyout_lot(title: str, price: float | None) -> bool:
     if price is None or not (BUYOUT_MIN_PRICE <= price <= BUYOUT_MAX_PRICE):
         return False
@@ -1130,7 +1144,7 @@ def is_buyout_lot(title: str, price: float | None) -> bool:
         return False
     if _NOT_A_LOT.search(title):
         return False
-    if names_many_sets(title):
+    if names_many_sets(title) or looks_like_single_card(title):
         return False
     return bool(_LOT_STRONG.search(title)) or bool(
         _LOT_CONTAINER.search(title) and _HAS_CARDS.search(title)
