@@ -776,9 +776,16 @@ def find_market_match(title: str, category: str, catalog: list[dict]) -> dict | 
 # opened boxes, accessories, wanted ads, code cards.
 _NOT_SEALED_LISTING = re.compile(
     r"\b(psa|bgs|cgc|graded|slab|no packs?|empty|box only|opened|acrylic|protector|"
-    r"magnetic|accessor(y|ies)|code cards?|codes|wtb|looking for|loose packs?|broken from)\b",
+    r"magnetic|accessor(y|ies)|code cards?|codes|wtb|looking for|loose packs?|broken from|"
+    # accessories sold separately (caught live 9 Nov 2026: "30th Anniversary
+    # Elite Trainer Box Sleeves and Coin Set" at S$10 was sent as a "check")
+    r"sleeves?|coins?|dice|playmats?|deck ?box(es)?|toploaders?|top loaders?|binders?|pins?)\b",
     re.I,
 )
+
+# Below this % of market a listing is never the sealed product it names:
+# it's an accessory, a single card or a scam, so it isn't worth an alert.
+IGNORE_BELOW_PCT_OF_MARKET = 15
 
 # Product types a title can name. A title naming 3+ is a shop's price list
 # with one "from" price, not one product (caught live 5 Nov 2026: "Delta
@@ -811,6 +818,11 @@ def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dic
     category = classify(title)
     if category is None or _NOT_SEALED_LISTING.search(title) or names_many_product_types(title):
         return None
+    # A single card that mentions a sealed product (caught live 9 Nov 2026:
+    # "Honey 157/S-P Promo ... Rapid Strike Master Booster Box purchase
+    # campaign" at S$25 was sent as a booster box "check").
+    if looks_like_single_card(title):
+        return None
     # Two or more set names = a dealer's list or keyword stuffing, not one
     # product (caught live: "pitch perfect phantasmal flames 30th booster box").
     if len({m.lower() for m in _SET_NAMES.findall(title)}) >= 2:
@@ -831,6 +843,8 @@ def evaluate_listing(raw: dict, market: dict[str, list[dict]], chinese: list[dic
 
     price = float(raw["price"])
     pct = price / ref_sgd * 100 if ref_sgd else 999
+    if pct < IGNORE_BELOW_PCT_OF_MARKET:
+        return None
     if pct < CHECK_BELOW_PCT_OF_MARKET:
         verdict = "check"
     elif pct <= deal_pct and ref_sgd - price >= MIN_GAP_SGD:

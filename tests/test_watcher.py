@@ -832,3 +832,20 @@ def test_price_lists_and_loose_packs_are_skipped():
     item = w.evaluate_listing(_raw("Pokémon Center 30th Celebration Elite Trainer Box (ETB) 9 booster packs", 150),
                               MARKET_2, [], 1.3)
     assert item is not None and item["verdict"] == "deal"
+
+
+def test_accessories_and_single_cards_naming_sealed_products_are_skipped():
+    # Real false alerts from 9 Nov 2026.
+    for title in [
+        "Pokémon 30th Anniversary Elite Trainer Box Sleeves and Coin Set",
+        "Pokemon Card Honey 157/S-P Promo Japanese Full Art Trainer Rapid Strike Master Booster Box Purchase Campaign",
+        "Pokemon Elite Trainer Box Dice and Deck Box only",
+    ]:
+        assert w.evaluate_listing(_raw(title, 25), MARKET_2, [], 1.3) is None, title
+
+
+def test_listings_far_below_market_are_ignored_not_checked():
+    # 30th PC ETB market S$234: S$20 is 9% (ignored), S$80 is 34% (check)
+    assert w.evaluate_listing(_raw("Pokémon Center 30th Celebration Elite Trainer Box", 20), MARKET, [], 1.3) is None
+    check = w.evaluate_listing(_raw("Pokémon Center 30th Celebration Elite Trainer Box", 80), MARKET, [], 1.3)
+    assert check["verdict"] == "check"
