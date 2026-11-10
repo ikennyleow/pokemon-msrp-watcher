@@ -98,9 +98,35 @@ def holding_products(holdings: list[dict], usd_sgd: float) -> list[dict]:
             "language": w.detect_language(f"{name} {variant}"),
             "quantity": 0,
             "market_sgd": round(float(h.get("currentPrice") or 0) * usd_sgd, 2),
+            "_cost_total": 0.0,
+            "_cost_qty": 0,
         })
-        p["quantity"] += int(h.get("quantity") or 0)
+        qty = int(h.get("quantity") or 0)
+        p["quantity"] += qty
+        if h.get("purchasePrice"):
+            p["_cost_total"] += float(h["purchasePrice"]) * usd_sgd * qty
+            p["_cost_qty"] += qty
+    for p in products.values():
+        # average cost per unit across lots bought at different prices
+        p["cost_sgd"] = round(p["_cost_total"] / p["_cost_qty"], 2) if p["_cost_qty"] else None
+        del p["_cost_total"], p["_cost_qty"]
     return list(products.values())
+
+
+def sale_estimate(row: dict) -> float | None:
+    """What a unit would realistically sell for today: the lowest other ask,
+    capped at market value."""
+    low, mkt = row.get("lowest_other"), row["product"].get("market_sgd")
+    vals = [v for v in (low, mkt) if v]
+    return min(vals) if vals else None
+
+
+def gain_pct(row: dict, price: float | None = None) -> float | None:
+    cost = row["product"].get("cost_sgd")
+    price = price if price is not None else sale_estimate(row)
+    if not cost or not price:
+        return None
+    return (price - cost) / cost * 100
 
 
 def _market_entry(title: str, category: str, language: str, market: dict | None) -> dict | None:
@@ -165,6 +191,10 @@ def advise(product: dict, my_ask: float | None, lowest_other: float | None) -> t
 _ORDER = {"cut": 0, "list": 1, "raise": 2, "ok": 3}
 _ICON = {"cut": "\U0001F53B", "raise": "\U0001F53A"}
 TOP_UNLISTED = 5
+# Only suggest listing a holding when today's realistic sale price is at
+# least this far above what it cost. Below it, holding usually pays better
+# than the thin margin (Kenny, 10 Nov 2026: "add a % gain as a guideline").
+MIN_LIST_GAIN_PCT = 50
 
 
 def build_digest(rows: list[dict], today: dt.date) -> str:
@@ -180,10 +210,17 @@ def build_digest(rows: list[dict], today: dt.date) -> str:
                      key=lambda r: (_ORDER[r["action"]], -r["product"]["market_sgd"]))
     fine = len(listed) - len(changes)
 
-    def value(r):
-        return r["lowest_other"] or r["product"]["market_sgd"] or 0
+    def total_profit(r):
+        est, cost = sale_estimate(r), r["product"].get("cost_sgd")
+        if est is None:
+            return 0
+        return (est - (cost or 0)) * r["product"]["quantity"]
 
-    worth = sorted([r for r in unlisted if value(r)], key=value, reverse=True)[:TOP_UNLISTED]
+    # Unknown cost: still suggested (the tracker just lacks the number).
+    eligible = [r for r in unlisted if sale_estimate(r)
+                and (gain_pct(r) is None or gain_pct(r) >= MIN_LIST_GAIN_PCT)]
+    below_bar = sum(1 for r in unlisted if gain_pct(r) is not None and gain_pct(r) < MIN_LIST_GAIN_PCT)
+    worth = sorted(eligible, key=total_profit, reverse=True)[:TOP_UNLISTED]
 
     lines = [f"\U0001F4CB <b>Daily price check · {today:%a %d %b}</b>", ""]
     lines.append(f"<b>Your listings</b> ({len(listed)})")
@@ -194,8 +231,10 @@ def build_digest(rows: list[dict], today: dt.date) -> str:
         low = (f"lowest other S${r['lowest_other']:.0f} ({r['n_other']})" if r["lowest_other"] is not None
                else "no other sellers")
         mkt = f" · market S${p['market_sgd']:.0f}" if p["market_sgd"] else ""
+        g = gain_pct(r, r["my_ask"])
+        gain = f" · {g:+.0f}% on cost" if g is not None else ""
         lines.append(
-            f"{_ICON[r['action']]} {html.escape(p['title'])}: you S${r['my_ask']:.0f} · {low}{mkt}\n"
+            f"{_ICON[r['action']]} {html.escape(p['title'])}: you S${r['my_ask']:.0f}{gain} · {low}{mkt}\n"
             f"   → {html.escape(r['text'])}"
         )
     if fine:
@@ -203,12 +242,17 @@ def build_digest(rows: list[dict], today: dt.date) -> str:
                      f"\u2705 All {fine} priced in line with Carousell")
 
     if worth:
-        lines += ["", f"<b>Worth listing</b> (top {len(worth)} of {len(unlisted)} not listed)"]
+        lines += ["", f"<b>Worth listing</b> (top {len(worth)} of {len(eligible)} at "
+                      f"{MIN_LIST_GAIN_PCT}%+ gain, by profit)"]
         for r in worth:
             p = r["product"]
             low = f"lowest S${r['lowest_other']:.0f} ({r['n_other']})" if r["lowest_other"] else "no other sellers"
             mkt = f" · market S${p['market_sgd']:.0f}" if p["market_sgd"] else ""
-            lines.append(f"• {html.escape(p['title'])} ×{p['quantity']}: {low}{mkt}")
+            g = gain_pct(r)
+            gain = (f" · cost S${p['cost_sgd']:.0f}, {g:+.0f}%" if g is not None else " · cost unknown")
+            lines.append(f"• {html.escape(p['title'])} ×{p['quantity']}: {low}{mkt}{gain}")
+    if below_bar:
+        lines.append(f"⏸ {below_bar} more not listed: under {MIN_LIST_GAIN_PCT}% gain today, hold")
     return "\n".join(lines)
 
 

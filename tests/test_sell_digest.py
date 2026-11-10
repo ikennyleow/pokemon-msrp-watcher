@@ -72,8 +72,8 @@ def test_build_digest_sections():
     assert "<b>Your listings</b> (2)" in msg
     assert "Terastal Festival Japanese Booster Box: you S$250 · lowest other S$200 (2)" in msg
     assert "1 priced in line with Carousell" in msg and "Mythical" not in msg
-    assert "<b>Worth listing</b> (top 1 of 1 not listed)" in msg
-    assert "• Crown Zenith Elite Trainer Box ×3: lowest S$360 (4) · market S$390" in msg
+    assert "<b>Worth listing</b> (top 1 of 1 at 50%+ gain, by profit)" in msg
+    assert "• Crown Zenith Elite Trainer Box ×3: lowest S$360 (4) · market S$390 · cost unknown" in msg
 
 
 def test_build_digest_caps_unlisted_to_most_valuable():
@@ -83,7 +83,7 @@ def test_build_digest_caps_unlisted_to_most_valuable():
         for i in range(1, 12)
     ]
     msg = sd.build_digest(rows, dt.date(2026, 11, 6))
-    assert "(top 5 of 11 not listed)" in msg
+    assert "(top 5 of 11 at 50%+ gain, by profit)" in msg
     assert "P11" in msg and "P7" in msg and "P6 " not in msg
     assert "None of your holdings are listed." in msg
 
@@ -164,3 +164,37 @@ def test_stale_listing_ids():
     assert sd.is_stale("https://www.carousell.sg/p/silver-tempest-booster-box-1210710902/", newest)
     assert not sd.is_stale("https://www.carousell.sg/p/silver-tempest-booster-box-1460000000/", newest)
     assert not sd.is_stale("https://www.carousell.sg/p/x-2/", newest)  # no numeric id: keep
+
+
+def test_cost_is_averaged_across_lots():
+    products = sd.holding_products([
+        {"name": "Phantasmal Flames", "category": "Booster Box", "quantity": 1, "currentPrice": 386.0, "purchasePrice": 119.0},
+        {"name": "Phantasmal Flames", "category": "Booster Box", "quantity": 1, "currentPrice": 386.0, "purchasePrice": 308.0},
+    ], 1.0)
+    assert products[0]["quantity"] == 2 and products[0]["cost_sgd"] == 213.5
+
+
+def _row(title, qty, cost, low, mkt):
+    return {"product": {"title": title, "quantity": qty, "market_sgd": mkt, "cost_sgd": cost},
+            "my_ask": None, "lowest_other": low, "n_other": 3, "action": "list", "text": ""}
+
+
+def test_worth_listing_uses_gain_bar_and_ranks_by_profit():
+    rows = [
+        _row("Destined Rivals Booster Box", 2, 345.0, 480.0, 490.0),   # +39%: below bar
+        _row("Battle Styles Booster Box", 2, 202.0, 400.0, 373.0),     # +85%, profit 342
+        _row("Brilliant Stars Booster Box", 1, 182.0, 750.0, 718.0),   # +295%, profit 536
+    ]
+    msg = sd.build_digest(rows, dt.date(2026, 11, 10))
+    assert "Destined Rivals" not in msg
+    assert "(top 2 of 2 at 50%+ gain, by profit)" in msg
+    assert msg.index("Brilliant Stars") < msg.index("Battle Styles")
+    assert "• Battle Styles Booster Box ×2: lowest S$400 (3) · market S$373 · cost S$202, +85%" in msg
+    assert "1 more not listed: under 50% gain today, hold" in msg
+
+
+def test_listed_items_show_gain_at_your_ask():
+    r = _row("Silver Tempest Booster Box", 1, 177.0, 600.0, 646.0)
+    r.update(my_ask=680.0, action="cut", text="undercut. Cut to ~S$599 or hold")
+    msg = sd.build_digest([r], dt.date(2026, 11, 10))
+    assert "you S$680 · +284% on cost · lowest other S$600 (3)" in msg
