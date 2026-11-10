@@ -34,6 +34,14 @@ SELL_DIGEST_HOUR = 9  # local time on the Mac
 MAX_LINES = 15
 UNDERCUT_MARGIN = 1.05  # your ask more than 5% above the lowest other ask
 UNDERPRICED_MARGIN = 0.90  # your ask more than 10% below the lowest other ask
+# Competing asks under this share of market aren't real offers: they're
+# placeholders, deposits or stale listings (caught live 10 Nov 2026: a 2022
+# "S$205 Silver Tempest Booster Box" listing against a S$646 market).
+MIN_OTHER_PCT_OF_MARKET = 0.5
+# Carousell listing IDs grow over time (~5-6 million a month). An ask whose
+# ID is this far below the newest one seen in the run is roughly six months
+# old or more: usually sold-out stock nobody took down, at an old price.
+STALE_LISTING_ID_GAP = 35_000_000
 
 # Tracker category -> watcher category (see CATEGORIES in the watcher).
 TRACKER_CATEGORIES = {
@@ -272,6 +280,16 @@ def search_url(product: dict) -> str:
     return "https://www.carousell.sg/search/" + quote(q)
 
 
+def _numeric_id(url: str) -> int:
+    lid = w._listing_id(url)
+    return int(lid) if lid.isdigit() else 0
+
+
+def is_stale(url: str, newest_id: int) -> bool:
+    lid = _numeric_id(url)
+    return bool(lid and newest_id and newest_id - lid > STALE_LISTING_ID_GAP)
+
+
 def run_sell_digest(state: dict, now: dt.datetime | None = None) -> None:
     now = now or dt.datetime.now()
     if not digest_due(state, now):
@@ -302,13 +320,16 @@ def run_sell_digest(state: dict, now: dt.datetime | None = None) -> None:
         if p:
             my_asks[p["key"]] = min(listing["price"], my_asks.get(p["key"], float("inf")))
 
+    newest_id = max((_numeric_id(x["url"]) for res in searches.values() for x in res), default=0)
     rows = []
     for p in products:
         others = [
             x["price"] for x in searches.get(urls[p["key"]], [])
             if x["url"] not in own_ids and match_product(x["title"], [p], market) is p
             # ignore obvious junk prices (cases, deposits, S$1 placeholders)
-            and (not p["market_sgd"] or 0.3 * p["market_sgd"] <= x["price"] <= 3 * p["market_sgd"])
+            and (not p["market_sgd"]
+                 or MIN_OTHER_PCT_OF_MARKET * p["market_sgd"] <= x["price"] <= 3 * p["market_sgd"])
+            and not is_stale(x["url"], newest_id)
         ]
         lowest = min(others) if others else None
         action, text = advise(p, my_asks.get(p["key"]), lowest)

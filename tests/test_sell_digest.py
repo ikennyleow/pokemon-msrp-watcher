@@ -116,6 +116,9 @@ def test_run_sell_digest_end_to_end(monkeypatch, tmp_path):
         return own, {u: own + [
             {"title": "Pokemon Crown Zenith ETB sealed", "price": 360.0, "url": "https://www.carousell.sg/p/x-2/"},
             {"title": "Pokemon Crown Zenith ETB case", "price": 2000.0, "url": "https://www.carousell.sg/p/x-3/"},
+            # 2022 listing at release price, never taken down
+            {"title": "Pokemon Crown Zenith ETB", "price": 250.0, "url": "https://www.carousell.sg/p/old-1210710902/"},
+            {"title": "Pokemon Crown Zenith ETB", "price": 150.0, "url": "https://www.carousell.sg/p/new-1473117544/"},
         ] for u in urls}
 
     monkeypatch.setattr(sd, "fetch_carousell_pages", fake_fetch)
@@ -154,3 +157,10 @@ def test_super_premium_collection_category_is_sellable():
     ], 1.3)
     assert products[0]["title"] == "Charizard ex Super-Premium Collection"
     assert products[0]["category"] == "Premium/Special collection"
+
+
+def test_stale_listing_ids():
+    newest = 1473117544
+    assert sd.is_stale("https://www.carousell.sg/p/silver-tempest-booster-box-1210710902/", newest)
+    assert not sd.is_stale("https://www.carousell.sg/p/silver-tempest-booster-box-1460000000/", newest)
+    assert not sd.is_stale("https://www.carousell.sg/p/x-2/", newest)  # no numeric id: keep
