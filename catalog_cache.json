@@ -170,60 +170,60 @@
     ]
   },
   "market_english": {
-    "fetched_at": 1795050269.5163522,
+    "fetched_at": 1795161895.8093967,
     "value": [
       {
         "title": "Delta Reign Booster Box",
         "category": "Booster box",
-        "usd": 184.37,
+        "usd": 192.54,
         "code": "dlr"
       },
       {
         "title": "Delta Reign Booster Bundle",
         "category": "Booster bundle",
-        "usd": 42.68,
+        "usd": 38.66,
         "code": "dlr"
       },
       {
         "title": "Delta Reign Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.98,
+        "usd": 6.08,
         "code": "dlr"
       },
       {
         "title": "Delta Reign Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 80.23,
+        "usd": 76.21,
         "code": "dlr"
       },
       {
         "title": "Delta Reign Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 132.44,
+        "usd": 135.19,
         "code": "dlr"
       },
       {
         "title": "Delta Reign Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 6.65,
+        "usd": 7.11,
         "code": "dlr"
       },
       {
         "title": "30th Celebration Booster Pack",
         "category": "Single booster pack",
-        "usd": 9.58,
+        "usd": 9.59,
         "code": "30c"
       },
       {
         "title": "30th Celebration Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 110.58,
+        "usd": 106.36,
         "code": "30c"
       },
       {
         "title": "30th Celebration Pokemon Center Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 249.55,
+        "usd": 250.37,
         "code": "30c"
       },
       {
@@ -241,7 +241,7 @@
       {
         "title": "30th Celebration Booster Bundle",
         "category": "Booster bundle",
-        "usd": 63.12,
+        "usd": 62.27,
         "code": "30c"
       },
       {
@@ -253,19 +253,19 @@
       {
         "title": "30th Celebration Mini Tin [Day Pikachu]",
         "category": "Tin",
-        "usd": 25.58,
+        "usd": 25.51,
         "code": "30c"
       },
       {
         "title": "30th Celebration Mini Tin [Mew]",
         "category": "Tin",
-        "usd": 22.54,
+        "usd": 23.19,
         "code": "30c"
       },
       {
         "title": "30th Celebration Mini Tin [Lapras]",
         "category": "Tin",
-        "usd": 23.3,
+        "usd": 23.43,
         "code": "30c"
       },
       {
@@ -283,19 +283,19 @@
       {
         "title": "30th Celebration Mini Tin [Umbreon]",
         "category": "Tin",
-        "usd": 25.24,
+        "usd": 25.81,
         "code": "30c"
       },
       {
         "title": "30th Celebration Mini Tin [Mewtwo]",
         "category": "Tin",
-        "usd": 24.65,
+        "usd": 25.06,
         "code": "30c"
       },
       {
         "title": "30th Celebration Mini Tin [Night Pikachu]",
         "category": "Tin",
-        "usd": 23.36,
+        "usd": 23.7,
         "code": "30c"
       },
       {
@@ -307,19 +307,19 @@
       {
         "title": "30th Celebration Ditto Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 76.41,
+        "usd": 75.53,
         "code": "30c"
       },
       {
         "title": "30th Celebration Ultra-Premium Collection [Day]",
         "category": "Premium/Special collection",
-        "usd": 318.75,
+        "usd": 318.4,
         "code": "30c"
       },
       {
         "title": "30th Celebration Ultra-Premium Collection [Night]",
         "category": "Premium/Special collection",
-        "usd": 356.53,
+        "usd": 341.85,
         "code": "30c"
       },
       {
@@ -331,43 +331,43 @@
       {
         "title": "30th Celebration ex Tin [Sylveon ex] (Retail Version)",
         "category": "Tin",
-        "usd": 52.33,
+        "usd": 52.73,
         "code": "30c"
       },
       {
         "title": "Costco Pokemon 30th Celebration 2-Pack Trainer Box and Booster Bundle",
         "category": "Booster bundle",
-        "usd": 179.57,
+        "usd": 170.61,
         "code": "30c"
       },
       {
         "title": "Pitch Black Booster Box",
         "category": "Booster box",
-        "usd": 172.92,
+        "usd": 175.24,
         "code": "pbl"
       },
       {
         "title": "Pitch Black Booster Bundle",
         "category": "Booster bundle",
-        "usd": 39.89,
+        "usd": 39.18,
         "code": "pbl"
       },
       {
         "title": "Pitch Black Booster Pack",
         "category": "Single booster pack",
-        "usd": 6.02,
+        "usd": 5.96,
         "code": "pbl"
       },
       {
         "title": "Pitch Black Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 63.79,
+        "usd": 65.13,
         "code": "pbl"
       },
       {
         "title": "Pitch Black Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 107.7,
+        "usd": 108.21,
         "code": "pbl"
       },
       {
@@ -379,106 +379,106 @@
       {
         "title": "Chaos Rising Booster Box",
         "category": "Booster box",
-        "usd": 177.45,
+        "usd": 179.68,
         "code": "cri"
       },
       {
         "title": "Chaos Rising Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.44,
+        "usd": 5.42,
         "code": "cri"
       },
       {
         "title": "Chaos Rising Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.71,
+        "usd": 5.66,
         "code": "cri"
       },
       {
         "title": "Chaos Rising Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 68.3,
+        "usd": 67.01,
         "code": "cri"
       },
       {
         "title": "Chaos Rising Pokemon Center Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 112.0,
+        "usd": 110.93,
         "code": "cri"
       },
       {
         "title": "Chaos Rising Booster Bundle",
         "category": "Booster bundle",
-        "usd": 37.42,
+        "usd": 37.19,
         "code": "cri"
       },
       {
         "title": "First Partner Collection 2026 Series 1 Booster Pack",
         "category": "Single booster pack",
-        "usd": 44.68
+        "usd": 44.74
       },
       {
         "title": "First Partner Collection 2026 Series 2 Booster Pack",
         "category": "Single booster pack",
-        "usd": 13.68
+        "usd": 13.84
       },
       {
         "title": "First Partner Collection 2026 Series 3 Booster Pack",
         "category": "Single booster pack",
-        "usd": 14.43
+        "usd": 14.44
       },
       {
         "title": "Perfect Order Booster Box",
         "category": "Booster box",
-        "usd": 167.51,
+        "usd": 168.14,
         "code": "por"
       },
       {
         "title": "Perfect Order Booster Bundle",
         "category": "Booster bundle",
-        "usd": 37.76,
+        "usd": 37.01,
         "code": "por"
       },
       {
         "title": "Perfect Order Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.76,
+        "usd": 5.67,
         "code": "por"
       },
       {
         "title": "Perfect Order Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 65.98,
+        "usd": 65.09,
         "code": "por"
       },
       {
         "title": "Perfect Order Pokemon Center Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 102.89,
+        "usd": 102.83,
         "code": "por"
       },
       {
         "title": "Perfect Order Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 6.81,
+        "usd": 7.07,
         "code": "por"
       },
       {
         "title": "Ascended Heroes Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 126.77,
+        "usd": 126.06,
         "code": "asc"
       },
       {
         "title": "Ascended Heroes Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 281.75,
+        "usd": 283.22,
         "code": "asc"
       },
       {
         "title": "Ascended Heroes Mini Tins 5-Pack",
         "category": "Tin",
-        "usd": 104.63,
+        "usd": 102.83,
         "code": "asc"
       },
       {
@@ -514,61 +514,61 @@
       {
         "title": "Ascended Heroes Booster Bundle",
         "category": "Booster bundle",
-        "usd": 78.24,
+        "usd": 78.25,
         "code": "asc"
       },
       {
         "title": "Ascended Heroes Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.36,
+        "usd": 10.53,
         "code": "asc"
       },
       {
         "title": "Ascended Heroes Tin [Mega Emboar ex]",
         "category": "Tin",
-        "usd": 39.56,
+        "usd": 39.55,
         "code": "asc"
       },
       {
         "title": "Ascended Heroes Tin [Mega Feraligatr ex]",
         "category": "Tin",
-        "usd": 39.79,
+        "usd": 40.42,
         "code": "asc"
       },
       {
         "title": "Ascended Heroes Tin [Mega Meganium ex]",
         "category": "Tin",
-        "usd": 39.45,
+        "usd": 39.54,
         "code": "asc"
       },
       {
         "title": "Ascended Heroes Focused Fighters Premium Collection (Sam's Club)",
         "category": "Premium/Special collection",
-        "usd": 161.74,
+        "usd": 162.29,
         "code": "asc"
       },
       {
         "title": "Phantasmal Flames Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 258.58,
+        "usd": 254.85,
         "code": "pfl"
       },
       {
         "title": "Phantasmal Flames Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 133.35,
+        "usd": 133.82,
         "code": "pfl"
       },
       {
         "title": "Phantasmal Flames Booster Box",
         "category": "Booster box",
-        "usd": 375.96,
+        "usd": 374.08,
         "code": "pfl"
       },
       {
         "title": "Phantasmal Flames Booster Pack",
         "category": "Single booster pack",
-        "usd": 11.81,
+        "usd": 11.77,
         "code": "pfl"
       },
       {
@@ -580,19 +580,19 @@
       {
         "title": "Phantasmal Flames Booster Bundle",
         "category": "Booster bundle",
-        "usd": 77.43,
+        "usd": 77.67,
         "code": "pfl"
       },
       {
         "title": "Mega Evolution Elite Trainer Box [Mega Gardevoir]",
         "category": "Elite Trainer Box",
-        "usd": 107.93,
+        "usd": 107.31,
         "code": "meg"
       },
       {
         "title": "Mega Evolution Pokemon Center Elite Trainer Box (Exclusive) [Mega Lucario]",
         "category": "Elite Trainer Box",
-        "usd": 188.44,
+        "usd": 188.1,
         "code": "meg"
       },
       {
@@ -604,13 +604,13 @@
       {
         "title": "Mega Evolution Enhanced Booster Box",
         "category": "Booster box",
-        "usd": 282.15,
+        "usd": 280.71,
         "code": "meg"
       },
       {
         "title": "Mega Evolution Booster Pack",
         "category": "Single booster pack",
-        "usd": 8.96,
+        "usd": 8.94,
         "code": "meg"
       },
       {
@@ -622,13 +622,13 @@
       {
         "title": "Mega Evolution Booster Bundle",
         "category": "Booster bundle",
-        "usd": 65.2,
+        "usd": 65.03,
         "code": "meg"
       },
       {
         "title": "Mega Evolution Elite Trainer Box [Mega Lucario]",
         "category": "Elite Trainer Box",
-        "usd": 113.28,
+        "usd": 112.93,
         "code": "meg"
       },
       {
@@ -670,13 +670,13 @@
       {
         "title": "Black Bolt Booster Bundle",
         "category": "Booster bundle",
-        "usd": 94.59,
+        "usd": 94.23,
         "code": "blk"
       },
       {
         "title": "Black Bolt Booster Pack",
         "category": "Single booster pack",
-        "usd": 13.92,
+        "usd": 13.88,
         "code": "blk"
       },
       {
@@ -718,7 +718,7 @@
       {
         "title": "Unova Mini Tin [Alomomola & Axew]",
         "category": "Tin",
-        "usd": 28.86,
+        "usd": 29.17,
         "code": "blk"
       },
       {
@@ -730,19 +730,19 @@
       {
         "title": "Black Bolt Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 151.72,
+        "usd": 151.24,
         "code": "blk"
       },
       {
         "title": "Black Bolt Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 259.01,
+        "usd": 258.21,
         "code": "blk"
       },
       {
         "title": "Unova Heavy Hitters Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 156.46,
+        "usd": 154.41,
         "code": "blk"
       },
       {
@@ -754,49 +754,49 @@
       {
         "title": "White Flare Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 139.75,
+        "usd": 137.82,
         "code": "wht"
       },
       {
         "title": "White Flare Booster Bundle",
         "category": "Booster bundle",
-        "usd": 91.67,
+        "usd": 91.22,
         "code": "wht"
       },
       {
         "title": "White Flare Booster Pack",
         "category": "Single booster pack",
-        "usd": 13.1,
+        "usd": 13.03,
         "code": "wht"
       },
       {
         "title": "Destined Rivals Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 393.29,
+        "usd": 388.22,
         "code": "dri"
       },
       {
         "title": "Destined Rivals Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 104.57,
+        "usd": 101.51,
         "code": "dri"
       },
       {
         "title": "Destined Rivals Booster Box",
         "category": "Booster box",
-        "usd": 375.97,
+        "usd": 377.01,
         "code": "dri"
       },
       {
         "title": "Destined Rivals Half Booster Box",
         "category": "Booster box",
-        "usd": 321.0,
+        "usd": 323.33,
         "code": "dri"
       },
       {
         "title": "Destined Rivals Booster Pack",
         "category": "Single booster pack",
-        "usd": 8.25,
+        "usd": 7.96,
         "code": "dri"
       },
       {
@@ -808,25 +808,25 @@
       {
         "title": "Destined Rivals Booster Bundle",
         "category": "Booster bundle",
-        "usd": 64.93,
+        "usd": 65.23,
         "code": "dri"
       },
       {
         "title": "Journey Together Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 184.8,
+        "usd": 184.04,
         "code": "jtg"
       },
       {
         "title": "Journey Together Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 132.13,
+        "usd": 132.55,
         "code": "jtg"
       },
       {
         "title": "Journey Together Booster Box",
         "category": "Booster box",
-        "usd": 198.35,
+        "usd": 199.51,
         "code": "jtg"
       },
       {
@@ -838,49 +838,49 @@
       {
         "title": "Journey Together Booster Pack",
         "category": "Single booster pack",
-        "usd": 6.43,
+        "usd": 6.22,
         "code": "jtg"
       },
       {
         "title": "Journey Together Booster Bundle",
         "category": "Booster bundle",
-        "usd": 40.78,
+        "usd": 41.33,
         "code": "jtg"
       },
       {
         "title": "Journey Together Enhanced Booster Box",
         "category": "Booster box",
-        "usd": 220.79,
+        "usd": 219.95,
         "code": "jtg"
       },
       {
         "title": "Prismatic Evolutions Booster Pack",
         "category": "Single booster pack",
-        "usd": 13.12,
+        "usd": 13.2,
         "code": "pre"
       },
       {
         "title": "Prismatic Evolutions Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 356.72,
+        "usd": 347.24,
         "code": "pre"
       },
       {
         "title": "Prismatic Evolutions Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 109.98,
+        "usd": 113.39,
         "code": "pre"
       },
       {
         "title": "Prismatic Evolutions Mini Tin [Vaporeon]",
         "category": "Tin",
-        "usd": 39.49,
+        "usd": 39.34,
         "code": "pre"
       },
       {
         "title": "Prismatic Evolutions Mini Tin [Jolteon]",
         "category": "Tin",
-        "usd": 33.22,
+        "usd": 32.97,
         "code": "pre"
       },
       {
@@ -892,7 +892,7 @@
       {
         "title": "Prismatic Evolutions Mini Tin [Espeon]",
         "category": "Tin",
-        "usd": 38.37,
+        "usd": 38.43,
         "code": "pre"
       },
       {
@@ -916,25 +916,25 @@
       {
         "title": "Prismatic Evolutions Mini Tin [Sylveon]",
         "category": "Tin",
-        "usd": 41.72,
+        "usd": 41.56,
         "code": "pre"
       },
       {
         "title": "Prismatic Evolutions Booster Bundle",
         "category": "Booster bundle",
-        "usd": 72.53,
+        "usd": 70.98,
         "code": "pre"
       },
       {
         "title": "Prismatic Evolutions Super-Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 237.06,
+        "usd": 237.66,
         "code": "pre"
       },
       {
         "title": "Prismatic Evolutions Elite Trainer Box (Dollar General Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 193.37,
+        "usd": 191.73,
         "code": "pre"
       },
       {
@@ -946,19 +946,19 @@
       {
         "title": "Surging Sparks Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 11.24,
+        "usd": 11.23,
         "code": "ssp"
       },
       {
         "title": "Surging Sparks Booster Pack",
         "category": "Single booster pack",
-        "usd": 8.77,
+        "usd": 8.92,
         "code": "ssp"
       },
       {
         "title": "Surging Sparks Booster Box",
         "category": "Booster box",
-        "usd": 299.26,
+        "usd": 299.65,
         "code": "ssp"
       },
       {
@@ -970,7 +970,7 @@
       {
         "title": "Surging Sparks Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 120.0,
+        "usd": 120.81,
         "code": "ssp"
       },
       {
@@ -988,13 +988,13 @@
       {
         "title": "Surging Sparks Booster Bundle (Retail)",
         "category": "Booster bundle",
-        "usd": 62.15,
+        "usd": 62.54,
         "code": "ssp"
       },
       {
         "title": "Stellar Crown Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.73,
+        "usd": 10.76,
         "code": "scr"
       },
       {
@@ -1006,7 +1006,7 @@
       {
         "title": "Stellar Crown Booster Bundle",
         "category": "Booster bundle",
-        "usd": 70.43,
+        "usd": 70.41,
         "code": "scr"
       },
       {
@@ -1018,7 +1018,7 @@
       {
         "title": "Stellar Crown Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.59,
+        "usd": 10.58,
         "code": "scr"
       },
       {
@@ -1054,7 +1054,7 @@
       {
         "title": "Trick or Trade BOOster Bundle 2024 - Mini Booster Pack",
         "category": "Booster bundle",
-        "usd": 2.13,
+        "usd": 2.16,
         "code": "ttbb24"
       },
       {
@@ -1066,19 +1066,19 @@
       {
         "title": "Shrouded Fable Booster Pack",
         "category": "Single booster pack",
-        "usd": 12.16,
+        "usd": 12.25,
         "code": "sfa"
       },
       {
         "title": "Shrouded Fable Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 155.95,
+        "usd": 154.42,
         "code": "sfa"
       },
       {
         "title": "Shrouded Fable Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 109.03,
+        "usd": 107.91,
         "code": "sfa"
       },
       {
@@ -1114,13 +1114,13 @@
       {
         "title": "Shrouded Fable Booster Bundle",
         "category": "Booster bundle",
-        "usd": 55.11,
+        "usd": 53.4,
         "code": "sfa"
       },
       {
         "title": "Twilight Masquerade Booster Pack",
         "category": "Single booster pack",
-        "usd": 9.24,
+        "usd": 9.27,
         "code": "twm"
       },
       {
@@ -1132,19 +1132,19 @@
       {
         "title": "Twilight Masquerade Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 106.4,
+        "usd": 106.68,
         "code": "twm"
       },
       {
         "title": "Twilight Masquerade Booster Box",
         "category": "Booster box",
-        "usd": 333.63,
+        "usd": 333.57,
         "code": "twm"
       },
       {
         "title": "Twilight Masquerade Booster Bundle",
         "category": "Booster bundle",
-        "usd": 76.9,
+        "usd": 77.11,
         "code": "twm"
       },
       {
@@ -1156,13 +1156,13 @@
       {
         "title": "Temporal Forces Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.6,
+        "usd": 10.78,
         "code": "tef"
       },
       {
         "title": "Temporal Forces Elite Trainer Box [Walking Wake]",
         "category": "Elite Trainer Box",
-        "usd": 143.19,
+        "usd": 140.85,
         "code": "tef"
       },
       {
@@ -1180,7 +1180,7 @@
       {
         "title": "Temporal Forces Booster Box",
         "category": "Booster box",
-        "usd": 324.36,
+        "usd": 322.52,
         "code": "tef"
       },
       {
@@ -1204,19 +1204,19 @@
       {
         "title": "Paldean Fates Booster Pack",
         "category": "Single booster pack",
-        "usd": 24.67,
+        "usd": 24.68,
         "code": "paf"
       },
       {
         "title": "Paldean Fates Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 539.66,
+        "usd": 538.67,
         "code": "paf"
       },
       {
         "title": "Paldean Fates Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 427.56,
+        "usd": 426.2,
         "code": "paf"
       },
       {
@@ -1234,7 +1234,7 @@
       {
         "title": "Paldean Fates Mini Tin [Maushold]",
         "category": "Tin",
-        "usd": 84.03,
+        "usd": 83.57,
         "code": "paf"
       },
       {
@@ -1264,7 +1264,7 @@
       {
         "title": "Paldean Fates Tin [Iron Treads ex]",
         "category": "Tin",
-        "usd": 132.36,
+        "usd": 132.54,
         "code": "paf"
       },
       {
@@ -1306,7 +1306,7 @@
       {
         "title": "Paldean Fates Booster Bundle",
         "category": "Booster bundle",
-        "usd": 174.05,
+        "usd": 173.65,
         "code": "paf"
       },
       {
@@ -1324,25 +1324,25 @@
       {
         "title": "Paradox Rift Pokemon Center Elite Trainer Box (Exclusive) [Roaring Moon]",
         "category": "Elite Trainer Box",
-        "usd": 204.59,
+        "usd": 205.08,
         "code": "par"
       },
       {
         "title": "Paradox Rift Elite Trainer Box [Iron Valiant]",
         "category": "Elite Trainer Box",
-        "usd": 136.27,
+        "usd": 136.49,
         "code": "par"
       },
       {
         "title": "Paradox Rift Elite Trainer Box [Roaring Moon]",
         "category": "Elite Trainer Box",
-        "usd": 136.58,
+        "usd": 137.58,
         "code": "par"
       },
       {
         "title": "Paradox Rift Booster Bundle",
         "category": "Booster bundle",
-        "usd": 95.06,
+        "usd": 95.26,
         "code": "par"
       },
       {
@@ -1372,25 +1372,25 @@
       {
         "title": "151 Booster Bundle",
         "category": "Booster bundle",
-        "usd": 166.04,
+        "usd": 165.77,
         "code": "mew"
       },
       {
         "title": "151 Ultra-Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 842.37,
+        "usd": 841.61,
         "code": "mew"
       },
       {
         "title": "151 Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 486.35,
+        "usd": 485.92,
         "code": "mew"
       },
       {
         "title": "151 Booster Pack",
         "category": "Single booster pack",
-        "usd": 27.0,
+        "usd": 27.02,
         "code": "mew"
       },
       {
@@ -1420,7 +1420,7 @@
       {
         "title": "151 Mini Tin [Hitmonlee & Kadabra]",
         "category": "Tin",
-        "usd": 50.93,
+        "usd": 50.77,
         "code": "mew"
       },
       {
@@ -1456,13 +1456,13 @@
       {
         "title": "Blooming Waters Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 320.63,
+        "usd": 319.83,
         "code": "mew"
       },
       {
         "title": "Sam's Club 151 (4 Mini Tins + 4 Promo Cards Bundle)",
         "category": "Tin",
-        "usd": 212.64,
+        "usd": 212.32,
         "code": "mew"
       },
       {
@@ -1474,7 +1474,7 @@
       {
         "title": "Trick or Trade BOOster Bundle 2023 - Mini Booster Pack",
         "category": "Booster bundle",
-        "usd": 1.9,
+        "usd": 1.8,
         "code": "ttbb23"
       },
       {
@@ -1486,7 +1486,7 @@
       {
         "title": "Obsidian Flames Booster Pack",
         "category": "Single booster pack",
-        "usd": 12.51,
+        "usd": 12.53,
         "code": "obf"
       },
       {
@@ -1504,7 +1504,7 @@
       {
         "title": "Obsidian Flames Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 265.88,
+        "usd": 265.12,
         "code": "obf"
       },
       {
@@ -1534,13 +1534,13 @@
       {
         "title": "Paldea Evolved Booster Box",
         "category": "Booster box",
-        "usd": 465.47,
+        "usd": 465.67,
         "code": "pal"
       },
       {
         "title": "Paldea Evolved Booster Pack",
         "category": "Single booster pack",
-        "usd": 14.98,
+        "usd": 14.92,
         "code": "pal"
       },
       {
@@ -1558,7 +1558,7 @@
       {
         "title": "Scarlet & Violet Booster Pack",
         "category": "Single booster pack",
-        "usd": 9.13,
+        "usd": 9.11,
         "code": "svi"
       },
       {
@@ -1606,13 +1606,13 @@
       {
         "title": "Crown Zenith Booster Pack",
         "category": "Single booster pack",
-        "usd": 25.53,
+        "usd": 25.7,
         "code": "crz"
       },
       {
         "title": "Crown Zenith Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 313.47,
+        "usd": 314.99,
         "code": "crz"
       },
       {
@@ -1660,7 +1660,7 @@
       {
         "title": "Crown Zenith Tin [Galarian Articuno]",
         "category": "Tin",
-        "usd": 151.49,
+        "usd": 152.29,
         "code": "crz"
       },
       {
@@ -1672,7 +1672,7 @@
       {
         "title": "Crown Zenith Tin [Galarian Zapdos]",
         "category": "Tin",
-        "usd": 141.41,
+        "usd": 141.92,
         "code": "crz"
       },
       {
@@ -1744,7 +1744,7 @@
       {
         "title": "Silver Tempest Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 156.36,
+        "usd": 156.52,
         "code": "swsh12"
       },
       {
@@ -1756,25 +1756,25 @@
       {
         "title": "Lost Origin Booster Box",
         "category": "Booster box",
-        "usd": 731.25,
+        "usd": 730.61,
         "code": "swsh11"
       },
       {
         "title": "Lost Origin Booster Pack",
         "category": "Single booster pack",
-        "usd": 18.15,
+        "usd": 18.25,
         "code": "swsh11"
       },
       {
         "title": "Lost Origin Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 22.17,
+        "usd": 22.37,
         "code": "swsh11"
       },
       {
         "title": "Lost Origin Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 193.31,
+        "usd": 193.43,
         "code": "swsh11"
       },
       {
@@ -1804,7 +1804,7 @@
       {
         "title": "Sword & Shield Ultra-Premium Collection: Charizard",
         "category": "Premium/Special collection",
-        "usd": 576.54,
+        "usd": 577.36,
         "code": "swsh11"
       },
       {
@@ -1852,7 +1852,7 @@
       {
         "title": "Trick or Trade BOOster Bundle - Mini Booster Pack",
         "category": "Booster bundle",
-        "usd": 2.01,
+        "usd": 1.9,
         "code": "ttbb"
       },
       {
@@ -1870,19 +1870,19 @@
       {
         "title": "Pokemon GO Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 167.48,
+        "usd": 168.82,
         "code": "pgo"
       },
       {
         "title": "Pokemon GO Pokemon Center Elite Trainer Box Plus (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 244.25,
+        "usd": 244.93,
         "code": "pgo"
       },
       {
         "title": "Pokemon GO Special Collection - Team Instinct",
         "category": "Premium/Special collection",
-        "usd": 90.0,
+        "usd": 90.44,
         "code": "pgo"
       },
       {
@@ -1894,13 +1894,13 @@
       {
         "title": "Pokemon GO Special Collection - Team Valor",
         "category": "Premium/Special collection",
-        "usd": 104.2,
+        "usd": 102.66,
         "code": "pgo"
       },
       {
         "title": "Pokemon GO Premium Collection [Radiant Eevee]",
         "category": "Premium/Special collection",
-        "usd": 171.13,
+        "usd": 172.49,
         "code": "pgo"
       },
       {
@@ -1960,7 +1960,7 @@
       {
         "title": "Pokemon GO Booster Pack",
         "category": "Single booster pack",
-        "usd": 16.11,
+        "usd": 16.01,
         "code": "pgo"
       },
       {
@@ -1984,7 +1984,7 @@
       {
         "title": "Astral Radiance Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 124.87,
+        "usd": 124.35,
         "code": "swsh10"
       },
       {
@@ -2002,7 +2002,7 @@
       {
         "title": "Brilliant Stars Booster Pack",
         "category": "Single booster pack",
-        "usd": 15.26,
+        "usd": 15.54,
         "code": "swsh09"
       },
       {
@@ -2014,13 +2014,13 @@
       {
         "title": "Brilliant Stars Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 164.54,
+        "usd": 163.62,
         "code": "swsh09"
       },
       {
         "title": "Brilliant Stars Pokemon Center Elite Trainer Box (Exclusive)",
         "category": "Elite Trainer Box",
-        "usd": 245.79,
+        "usd": 245.63,
         "code": "swsh09"
       },
       {
@@ -2032,25 +2032,25 @@
       {
         "title": "Glaceon VSTAR Special Collection",
         "category": "Premium/Special collection",
-        "usd": 149.01,
+        "usd": 151.55,
         "code": "swsh09"
       },
       {
         "title": "Leafeon VSTAR Special Collection",
         "category": "Premium/Special collection",
-        "usd": 127.64,
+        "usd": 128.98,
         "code": "swsh09"
       },
       {
         "title": "Fusion Strike Booster Pack",
         "category": "Single booster pack",
-        "usd": 18.82,
+        "usd": 19.13,
         "code": "swsh08"
       },
       {
         "title": "Fusion Strike Booster Box",
         "category": "Booster box",
-        "usd": 1005.26,
+        "usd": 1005.16,
         "code": "swsh08"
       },
       {
@@ -2092,7 +2092,7 @@
       {
         "title": "Celebrations Mini Tin [Kanto]",
         "category": "Tin",
-        "usd": 74.99,
+        "usd": 74.79,
         "code": "clb"
       },
       {
@@ -2152,7 +2152,7 @@
       {
         "title": "Celebrations Booster Pack",
         "category": "Single booster pack",
-        "usd": 26.01,
+        "usd": 25.94,
         "code": "clb"
       },
       {
@@ -2194,25 +2194,25 @@
       {
         "title": "Evolving Skies Booster Box",
         "category": "Booster box",
-        "usd": 2205.64,
+        "usd": 2187.64,
         "code": "swsh07"
       },
       {
         "title": "Evolving Skies Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 57.79,
+        "usd": 57.99,
         "code": "swsh07"
       },
       {
         "title": "Evolving Skies Elite Trainer Box [Glaceon/Vaporeon/Sylveon/Espeon]",
         "category": "Elite Trainer Box",
-        "usd": 454.33,
+        "usd": 453.36,
         "code": "swsh07"
       },
       {
         "title": "Evolving Skies Booster Pack",
         "category": "Single booster pack",
-        "usd": 43.77,
+        "usd": 43.68,
         "code": "swsh07"
       },
       {
@@ -2236,7 +2236,7 @@
       {
         "title": "Greninja V-UNION Special Collection",
         "category": "Premium/Special collection",
-        "usd": 158.42,
+        "usd": 160.98,
         "code": "swsh07"
       },
       {
@@ -2248,7 +2248,7 @@
       {
         "title": "Chilling Reign Booster Pack",
         "category": "Single booster pack",
-        "usd": 11.98,
+        "usd": 12.11,
         "code": "swsh06"
       },
       {
@@ -2290,13 +2290,13 @@
       {
         "title": "Battle Styles Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.02,
+        "usd": 10.14,
         "code": "swsh05"
       },
       {
         "title": "Battle Styles Booster Box",
         "category": "Booster box",
-        "usd": 283.86,
+        "usd": 283.05,
         "code": "swsh05"
       },
       {
@@ -2308,7 +2308,7 @@
       {
         "title": "Battle Styles Elite Trainer Box [Rapid Strike Urshifu] (Blue)",
         "category": "Elite Trainer Box",
-        "usd": 125.07,
+        "usd": 123.43,
         "code": "swsh05"
       },
       {
@@ -2338,7 +2338,7 @@
       {
         "title": "Shining Fates Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 142.77,
+        "usd": 142.64,
         "code": "shf"
       },
       {
@@ -2350,13 +2350,13 @@
       {
         "title": "Shining Fates V Tin [Boltund V]",
         "category": "Tin",
-        "usd": 69.34,
+        "usd": 69.54,
         "code": "shf"
       },
       {
         "title": "Shining Fates V Tin [Cramorant V]",
         "category": "Tin",
-        "usd": 71.44,
+        "usd": 71.46,
         "code": "shf"
       },
       {
@@ -2398,25 +2398,25 @@
       {
         "title": "Shining Fates Mini Tin [Kyogre]",
         "category": "Tin",
-        "usd": 43.87,
+        "usd": 46.18,
         "code": "shf"
       },
       {
         "title": "Shining Fates Booster Pack",
         "category": "Single booster pack",
-        "usd": 17.51,
+        "usd": 17.31,
         "code": "shf"
       },
       {
         "title": "McDonald's 25th Anniversary Booster Pack",
         "category": "Single booster pack",
-        "usd": 8.34,
+        "usd": 8.44,
         "code": "m21"
       },
       {
         "title": "Vivid Voltage Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.23,
+        "usd": 10.21,
         "code": "swsh04"
       },
       {
@@ -2428,7 +2428,7 @@
       {
         "title": "Vivid Voltage Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 142.44,
+        "usd": 142.4,
         "code": "swsh04"
       },
       {
@@ -2452,13 +2452,13 @@
       {
         "title": "Vivid Voltage Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 13.23,
+        "usd": 13.39,
         "code": "swsh04"
       },
       {
         "title": "Champion's Path Booster Pack",
         "category": "Single booster pack",
-        "usd": 19.97,
+        "usd": 20.06,
         "code": "chp"
       },
       {
@@ -2470,13 +2470,13 @@
       {
         "title": "Champion's Path Premium Collection [Marnie]",
         "category": "Premium/Special collection",
-        "usd": 148.91,
+        "usd": 149.82,
         "code": "chp"
       },
       {
         "title": "Darkness Ablaze Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.32,
+        "usd": 10.35,
         "code": "swsh03"
       },
       {
@@ -2506,7 +2506,7 @@
       {
         "title": "Darkness Ablaze Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 10.89,
+        "usd": 10.85,
         "code": "swsh03"
       },
       {
@@ -2518,7 +2518,7 @@
       {
         "title": "Rebel Clash Booster Pack",
         "category": "Single booster pack",
-        "usd": 11.05,
+        "usd": 11.0,
         "code": "swsh02"
       },
       {
@@ -2548,7 +2548,7 @@
       {
         "title": "Sword & Shield Booster Pack",
         "category": "Single booster pack",
-        "usd": 11.77,
+        "usd": 11.78,
         "code": "swsh01"
       },
       {
@@ -2608,7 +2608,7 @@
       {
         "title": "Cosmic Eclipse Booster Pack",
         "category": "Single booster pack",
-        "usd": 72.55,
+        "usd": 72.38,
         "code": "sm12"
       },
       {
@@ -2632,7 +2632,7 @@
       {
         "title": "Hidden Fates Tin [Charizard GX]",
         "category": "Tin",
-        "usd": 178.03,
+        "usd": 178.23,
         "code": "hif"
       },
       {
@@ -2644,13 +2644,13 @@
       {
         "title": "Hidden Fates Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 556.39,
+        "usd": 557.0,
         "code": "hif"
       },
       {
         "title": "Hidden Fates Booster Pack",
         "category": "Single booster pack",
-        "usd": 46.83,
+        "usd": 46.47,
         "code": "hif"
       },
       {
@@ -2728,7 +2728,7 @@
       {
         "title": "Team Up Booster Pack",
         "category": "Single booster pack",
-        "usd": 324.41,
+        "usd": 324.81,
         "code": "sm9"
       },
       {
@@ -2777,12 +2777,6 @@
         "title": "Lost Thunder Booster Pack",
         "category": "Single booster pack",
         "usd": 55.13,
-        "code": "sm8"
-      },
-      {
-        "title": "Lost Thunder Elite Trainer Box",
-        "category": "Elite Trainer Box",
-        "usd": 729.8,
         "code": "sm8"
       },
       {
@@ -2896,13 +2890,13 @@
       {
         "title": "Ultra Prism Elite Trainer Box [Dawn Wings Necrozma]",
         "category": "Elite Trainer Box",
-        "usd": 780.99,
+        "usd": 803.32,
         "code": "sm05"
       },
       {
         "title": "Ultra Prism Elite Trainer Box [Dusk Mane Necrozma]",
         "category": "Elite Trainer Box",
-        "usd": 760.77,
+        "usd": 775.64,
         "code": "sm05"
       },
       {
@@ -2926,13 +2920,13 @@
       {
         "title": "Crimson Invasion Booster Box",
         "category": "Booster box",
-        "usd": 671.59,
+        "usd": 674.08,
         "code": "sm04"
       },
       {
         "title": "Crimson Invasion Booster Pack",
         "category": "Single booster pack",
-        "usd": 19.18,
+        "usd": 19.39,
         "code": "sm04"
       },
       {
@@ -2944,7 +2938,7 @@
       {
         "title": "Crimson Invasion Elite Trainer Box",
         "category": "Elite Trainer Box",
-        "usd": 224.27,
+        "usd": 224.48,
         "code": "sm04"
       },
       {
@@ -2992,7 +2986,7 @@
       {
         "title": "Burning Shadows Sleeved Booster Pack",
         "category": "Single booster pack",
-        "usd": 36.64,
+        "usd": 36.63,
         "code": "sm03"
       },
       {
@@ -3017,12 +3011,6 @@
         "title": "Island Guardians Tin [Tapu Koko GX]",
         "category": "Tin",
         "usd": 175.0,
-        "code": "sm02"
-      },
-      {
-        "title": "Primarina GX Premium Collection",
-        "category": "Premium/Special collection",
-        "usd": 337.99,
         "code": "sm02"
       },
       {
@@ -3052,7 +3040,7 @@
       {
         "title": "Sun & Moon Elite Trainer Box [Lunala]",
         "category": "Elite Trainer Box",
-        "usd": 248.07,
+        "usd": 249.51,
         "code": "sm01"
       },
       {
@@ -3226,7 +3214,7 @@
       {
         "title": "XY BREAKpoint Booster Pack",
         "category": "Single booster pack",
-        "usd": 51.83,
+        "usd": 53.31,
         "code": "bkp"
       },
       {
@@ -3238,7 +3226,7 @@
       {
         "title": "Triple Power Tin [Shiny Gyarados EX]",
         "category": "Tin",
-        "usd": 397.97,
+        "usd": 422.1,
         "code": "bkp"
       },
       {
@@ -3392,12 +3380,6 @@
         "code": "xy"
       },
       {
-        "title": "Legend of Kalos Tin [Yveltal EX]",
-        "category": "Tin",
-        "usd": 950.0,
-        "code": "xy"
-      },
-      {
         "title": "XY Base Set Sleeved Booster Pack",
         "category": "Single booster pack",
         "usd": 166.66,
@@ -3430,7 +3412,7 @@
       {
         "title": "Boundaries Crossed Booster Pack",
         "category": "Single booster pack",
-        "usd": 247.09,
+        "usd": 246.11,
         "code": "bcr"
       },
       {
@@ -3454,7 +3436,7 @@
       {
         "title": "Noble Victories Booster Pack",
         "category": "Single booster pack",
-        "usd": 168.87,
+        "usd": 168.71,
         "code": "nvi"
       },
       {
@@ -3638,12 +3620,6 @@
         "code": "tr"
       },
       {
-        "title": "Team Rocket Booster Pack [1st Edition]",
-        "category": "Single booster pack",
-        "usd": 764.71,
-        "code": "tr"
-      },
-      {
         "title": "Base Set 2 Booster Pack",
         "category": "Single booster pack",
         "usd": 462.19,
@@ -3724,13 +3700,13 @@
       {
         "title": "General Mills Promo Booster Pack [Kanto]",
         "category": "Single booster pack",
-        "usd": 35.86,
+        "usd": 36.87,
         "code": "mcap"
       },
       {
         "title": "General Mills Promo Booster Pack [Sun & Moon]",
         "category": "Single booster pack",
-        "usd": 32.37,
+        "usd": 32.08,
         "code": "mcap"
       },
       {
@@ -3892,7 +3868,7 @@
       {
         "title": "Galar Power Mini Tin [Toxtricity]",
         "category": "Tin",
-        "usd": 41.19,
+        "usd": 40.99,
         "code": "mcap"
       },
       {
@@ -3916,7 +3892,7 @@
       {
         "title": "V Powers Tin [Eternatus V]",
         "category": "Tin",
-        "usd": 67.61,
+        "usd": 68.14,
         "code": "mcap"
       },
       {
@@ -3976,7 +3952,7 @@
       {
         "title": "General Mills 25th Anniversary Booster Pack",
         "category": "Single booster pack",
-        "usd": 14.49,
+        "usd": 14.61,
         "code": "mcap"
       },
       {
@@ -4030,7 +4006,7 @@
       {
         "title": "Reshiram & Charizard GX Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 300.77,
+        "usd": 301.78,
         "code": "mcap"
       },
       {
@@ -4060,7 +4036,7 @@
       {
         "title": "Pikachu & Zekrom GX Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 285.35,
+        "usd": 285.8,
         "code": "mcap"
       },
       {
@@ -4078,7 +4054,7 @@
       {
         "title": "V Powers Tin [Pikachu V] (International Version)",
         "category": "Tin",
-        "usd": 59.18,
+        "usd": 59.91,
         "code": "mcap"
       },
       {
@@ -4138,7 +4114,7 @@
       {
         "title": "Sinnoh Star Mini Tin [Chimchar]",
         "category": "Tin",
-        "usd": 37.48,
+        "usd": 38.97,
         "code": "mcap"
       },
       {
@@ -4282,7 +4258,7 @@
       {
         "title": "VMAX Dragons Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 263.69,
+        "usd": 272.11,
         "code": "mcap"
       },
       {
@@ -4348,13 +4324,13 @@
       {
         "title": "Paldea Legends Tin [Koraidon ex]",
         "category": "Tin",
-        "usd": 41.23,
+        "usd": 41.8,
         "code": "mcap"
       },
       {
         "title": "Lucario VSTAR Special Collection",
         "category": "Premium/Special collection",
-        "usd": 86.14,
+        "usd": 86.55,
         "code": "mcap"
       },
       {
@@ -4396,7 +4372,7 @@
       {
         "title": "Charizard ex Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 107.7,
+        "usd": 107.54,
         "code": "mcap"
       },
       {
@@ -4426,7 +4402,7 @@
       {
         "title": "Combined Powers Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 124.92,
+        "usd": 125.98,
         "code": "mcap"
       },
       {
@@ -4460,15 +4436,9 @@
         "code": "mcap"
       },
       {
-        "title": "Pokemon Stacking Tin: Dragon",
-        "category": "Tin",
-        "usd": 34.99,
-        "code": "mcap"
-      },
-      {
         "title": "Paradox Clash Tin [Walking Wake ex]",
         "category": "Tin",
-        "usd": 38.04,
+        "usd": 38.22,
         "code": "mcap"
       },
       {
@@ -4522,13 +4492,13 @@
       {
         "title": "Dark Powers ex Special Collection",
         "category": "Premium/Special collection",
-        "usd": 117.47,
+        "usd": 117.71,
         "code": "mcap"
       },
       {
         "title": "Charizard ex Super-Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 131.15,
+        "usd": 131.26,
         "code": "mcap"
       },
       {
@@ -4558,13 +4528,13 @@
       {
         "title": "Tera Brawlers Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 104.5,
+        "usd": 109.25,
         "code": "mcap"
       },
       {
         "title": "Terapagos ex Ultra-Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 250.93,
+        "usd": 250.89,
         "code": "mcap"
       },
       {
@@ -4592,12 +4562,6 @@
         "code": "mcap"
       },
       {
-        "title": "Pokemon - Poke Ball Tin - Premier Ball (Q4 2024)",
-        "category": "Tin",
-        "usd": 26.95,
-        "code": "mcap"
-      },
-      {
         "title": "Pokemon - Poke Ball Tin - Ultra Ball (Q4 2024)",
         "category": "Tin",
         "usd": 28.5,
@@ -4612,7 +4576,7 @@
       {
         "title": "Costco Pokemon Scarlet & Violet 151 Mini Tin 5-pack (Meowth)",
         "category": "Tin",
-        "usd": 270.34,
+        "usd": 269.97,
         "code": "mcap"
       },
       {
@@ -4654,7 +4618,7 @@
       {
         "title": "Greninja ex Ultra-Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 498.03,
+        "usd": 497.67,
         "code": "mcap"
       },
       {
@@ -4696,13 +4660,13 @@
       {
         "title": "Azure Legends Tin [Kyogre ex]",
         "category": "Tin",
-        "usd": 47.65,
+        "usd": 47.72,
         "code": "mcap"
       },
       {
         "title": "Azure Legends Tin [Xerneas ex]",
         "category": "Tin",
-        "usd": 38.95,
+        "usd": 39.0,
         "code": "mcap"
       },
       {
@@ -4714,7 +4678,7 @@
       {
         "title": "Pokemon Stacking Tin: Paradox Pokemon",
         "category": "Tin",
-        "usd": 29.91,
+        "usd": 29.86,
         "code": "mcap"
       },
       {
@@ -4726,13 +4690,13 @@
       {
         "title": "Iono\u2019s Bellibolt ex Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 61.17,
+        "usd": 61.62,
         "code": "mcap"
       },
       {
         "title": "Charizard ex Special Collection",
         "category": "Premium/Special collection",
-        "usd": 46.77,
+        "usd": 43.71,
         "code": "mcap"
       },
       {
@@ -4744,7 +4708,7 @@
       {
         "title": "Slashing Legends Tin [Koraidon ex]",
         "category": "Tin",
-        "usd": 35.47,
+        "usd": 35.29,
         "code": "mcap"
       },
       {
@@ -4762,7 +4726,7 @@
       {
         "title": "Lillie Premium Tournament Collection Box",
         "category": "Premium/Special collection",
-        "usd": 78.72,
+        "usd": 78.76,
         "code": "mcap"
       },
       {
@@ -4888,19 +4852,19 @@
       {
         "title": "Mega Charizard X ex Ultra Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 206.95,
+        "usd": 205.18,
         "code": "mcap"
       },
       {
         "title": "Lugia ex & Latias ex Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 99.45,
+        "usd": 98.14,
         "code": "mcap"
       },
       {
         "title": "Mimikyu ex & Alcremie ex Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 115.8,
+        "usd": 115.74,
         "code": "mcap"
       },
       {
@@ -4912,13 +4876,13 @@
       {
         "title": "Team Rocket\u2019s Moltres ex Ultra-Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 315.18,
+        "usd": 315.76,
         "code": "mcap"
       },
       {
         "title": "Snorlax ex & Blissey ex Special Collection",
         "category": "Premium/Special collection",
-        "usd": 80.14,
+        "usd": 80.01,
         "code": "mcap"
       },
       {
@@ -4936,13 +4900,13 @@
       {
         "title": "Mega Charizard Tin (Mega Charizard Y)",
         "category": "Tin",
-        "usd": 42.88,
+        "usd": 43.56,
         "code": "mcap"
       },
       {
         "title": "Mega Charizard Tin (Mega Charizard X)",
         "category": "Tin",
-        "usd": 45.06,
+        "usd": 45.41,
         "code": "mcap"
       },
       {
@@ -4960,13 +4924,13 @@
       {
         "title": "Lumiose City Mini Tin [Meganium & Meowstic]",
         "category": "Tin",
-        "usd": 14.97,
+        "usd": 14.99,
         "code": "mcap"
       },
       {
         "title": "Lumiose City Mini Tin [Emboar & Inkay]",
         "category": "Tin",
-        "usd": 13.27,
+        "usd": 12.97,
         "code": "mcap"
       },
       {
@@ -4984,13 +4948,13 @@
       {
         "title": "Pokemon - Poke Ball Tin - Moon Ball",
         "category": "Tin",
-        "usd": 28.84,
+        "usd": 28.83,
         "code": "mcap"
       },
       {
         "title": "Mega Moonlit Tin [Mega Gengar ex]",
         "category": "Tin",
-        "usd": 32.43,
+        "usd": 32.32,
         "code": "mcap"
       },
       {
@@ -5020,25 +4984,25 @@
       {
         "title": "Pokemon - Poke Ball Tin - Premier Ball (Q4 2025)",
         "category": "Tin",
-        "usd": 25.43,
+        "usd": 25.22,
         "code": "mcap"
       },
       {
         "title": "Pokemon - Poke Ball Tin - Repeat Ball (Q4 2025)",
         "category": "Tin",
-        "usd": 22.56,
+        "usd": 22.6,
         "code": "mcap"
       },
       {
         "title": "Mega Greninja ex Premium Collection",
         "category": "Premium/Special collection",
-        "usd": 49.63,
+        "usd": 49.33,
         "code": "mcap"
       },
       {
         "title": "Mega Forces Tin [Mega Dragonite ex]",
         "category": "Tin",
-        "usd": 56.94,
+        "usd": 56.8,
         "code": "mcap"
       },
       {
@@ -5056,54 +5020,54 @@
       {
         "title": "Costco Ascended Heroes Mini Tins 5-Pack",
         "category": "Tin",
-        "usd": 85.82,
+        "usd": 83.76,
         "code": "mcap"
       },
       {
         "title": "Ascended Heroes Elite Trainer Box and Pokeball (Sam's Club)",
         "category": "Elite Trainer Box",
-        "usd": 133.56,
+        "usd": 134.6,
         "code": "mcap"
       }
     ]
   },
   "market_japanese": {
-    "fetched_at": 1795050275.3487797,
+    "fetched_at": 1795161901.5268595,
     "value": [
       {
         "title": "MEGA Expansion 30th Celebration Booster Box",
         "category": "Booster box",
-        "usd": 152.15,
+        "usd": 151.92,
         "code": "m6a"
       },
       {
         "title": "MEGA Expansion 30th Celebration Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.24,
+        "usd": 5.06,
         "code": "m6a"
       },
       {
         "title": "Storm Emeralda Booster Box",
         "category": "Booster box",
-        "usd": 84.03,
+        "usd": 83.39,
         "code": "m6"
       },
       {
         "title": "Storm Emeralda Booster Pack",
         "category": "Single booster pack",
-        "usd": 2.26,
+        "usd": 2.24,
         "code": "m6"
       },
       {
         "title": "Abyss Eye Booster Pack",
         "category": "Single booster pack",
-        "usd": 1.95,
+        "usd": 1.92,
         "code": "m5"
       },
       {
         "title": "Abyss Eye Booster Box",
         "category": "Booster box",
-        "usd": 74.08,
+        "usd": 73.94,
         "code": "m5"
       },
       {
@@ -5115,7 +5079,7 @@
       {
         "title": "Ninja Spinner Booster Pack",
         "category": "Single booster pack",
-        "usd": 2.13,
+        "usd": 2.09,
         "code": "m4"
       },
       {
@@ -5127,31 +5091,31 @@
       {
         "title": "Nihil Zero Booster Pack",
         "category": "Single booster pack",
-        "usd": 2.11,
+        "usd": 2.1,
         "code": "m3"
       },
       {
         "title": "Mega Dream ex Booster Box",
         "category": "Booster box",
-        "usd": 79.53,
+        "usd": 79.51,
         "code": "m2a"
       },
       {
         "title": "Mega Dream ex Booster Pack",
         "category": "Single booster pack",
-        "usd": 6.63,
+        "usd": 6.41,
         "code": "m2a"
       },
       {
         "title": "Inferno X Booster Box",
         "category": "Booster box",
-        "usd": 108.22,
+        "usd": 110.05,
         "code": "m2"
       },
       {
         "title": "Inferno X Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.21,
+        "usd": 3.19,
         "code": "m2"
       },
       {
@@ -5163,7 +5127,7 @@
       {
         "title": "Mega Brave Booster Pack",
         "category": "Single booster pack",
-        "usd": 2.94,
+        "usd": 2.85,
         "code": "m1l"
       },
       {
@@ -5175,19 +5139,19 @@
       {
         "title": "Mega Symphonia Booster Pack",
         "category": "Single booster pack",
-        "usd": 2.69,
+        "usd": 2.71,
         "code": "m1s"
       },
       {
         "title": "Mega Symphonia Booster Box",
         "category": "Booster box",
-        "usd": 77.48,
+        "usd": 77.42,
         "code": "m1s"
       },
       {
         "title": "Black Bolt Booster Pack",
         "category": "Single booster pack",
-        "usd": 9.85,
+        "usd": 9.9,
         "code": "sv11b"
       },
       {
@@ -5199,7 +5163,7 @@
       {
         "title": "Black Bolt Booster Box",
         "category": "Booster box",
-        "usd": 132.84,
+        "usd": 133.48,
         "code": "sv11b"
       },
       {
@@ -5211,13 +5175,13 @@
       {
         "title": "White Flare Booster Pack",
         "category": "Single booster pack",
-        "usd": 9.84,
+        "usd": 9.79,
         "code": "sv11w"
       },
       {
         "title": "White Flare Deluxe Booster Pack",
         "category": "Single booster pack",
-        "usd": 37.92,
+        "usd": 38.64,
         "code": "sv11w"
       },
       {
@@ -5241,7 +5205,7 @@
       {
         "title": "Glory of Team Rocket Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.09,
+        "usd": 4.88,
         "code": "sv10"
       },
       {
@@ -5253,13 +5217,13 @@
       {
         "title": "Heat Wave Arena Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.77,
+        "usd": 3.73,
         "code": "sv9a"
       },
       {
         "title": "Battle Partner Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.52,
+        "usd": 3.5,
         "code": "sv9"
       },
       {
@@ -5271,19 +5235,19 @@
       {
         "title": "Terastal Fest ex Booster Box",
         "category": "Booster box",
-        "usd": 115.65,
+        "usd": 115.37,
         "code": "sv8a"
       },
       {
         "title": "Terastal Fest ex Booster Pack",
         "category": "Single booster pack",
-        "usd": 9.34,
+        "usd": 9.25,
         "code": "sv8a"
       },
       {
         "title": "Super Electric Breaker Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.57,
+        "usd": 5.51,
         "code": "sv8"
       },
       {
@@ -5295,7 +5259,7 @@
       {
         "title": "Paradise Dragona Booster Box",
         "category": "Booster box",
-        "usd": 113.67,
+        "usd": 113.06,
         "code": "sv7a"
       },
       {
@@ -5307,7 +5271,7 @@
       {
         "title": "Stellar Miracle Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.69,
+        "usd": 3.65,
         "code": "sv7"
       },
       {
@@ -5325,7 +5289,7 @@
       {
         "title": "Night Wanderer Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.74,
+        "usd": 3.66,
         "code": "sv6a"
       },
       {
@@ -5337,7 +5301,7 @@
       {
         "title": "Transformation Mask Booster Box",
         "category": "Booster box",
-        "usd": 97.82,
+        "usd": 97.66,
         "code": "sv6"
       },
       {
@@ -5349,13 +5313,13 @@
       {
         "title": "Crimson Haze Booster Pack",
         "category": "Single booster pack",
-        "usd": 4.3,
+        "usd": 4.28,
         "code": "sv5a"
       },
       {
         "title": "Wild Force Booster Pack",
         "category": "Single booster pack",
-        "usd": 4.21,
+        "usd": 4.17,
         "code": "sv5k"
       },
       {
@@ -5373,25 +5337,25 @@
       {
         "title": "Cyber Judge Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.77,
+        "usd": 3.69,
         "code": "sv5m"
       },
       {
         "title": "Shiny Treasure ex High Class Booster Box",
         "category": "Booster box",
-        "usd": 131.43,
+        "usd": 131.42,
         "code": "sv4a"
       },
       {
         "title": "Shiny Treasure ex High Class Booster Pack",
         "category": "Single booster pack",
-        "usd": 12.63,
+        "usd": 12.38,
         "code": "sv4a"
       },
       {
         "title": "Ancient Roar Booster Pack",
         "category": "Single booster pack",
-        "usd": 4.0,
+        "usd": 4.05,
         "code": "sv4k"
       },
       {
@@ -5409,13 +5373,13 @@
       {
         "title": "Future Flash Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.7,
+        "usd": 3.77,
         "code": "sv4m"
       },
       {
         "title": "Raging Surf Booster Pack",
         "category": "Single booster pack",
-        "usd": 5.36,
+        "usd": 5.37,
         "code": "sv3a"
       },
       {
@@ -5433,13 +5397,13 @@
       {
         "title": "Ruler of the Black Flame Booster Pack",
         "category": "Single booster pack",
-        "usd": 4.79,
+        "usd": 4.83,
         "code": "sv3"
       },
       {
         "title": "Pokemon Card 151 Booster Pack",
         "category": "Single booster pack",
-        "usd": 17.7,
+        "usd": 17.44,
         "code": "sv2a"
       },
       {
@@ -5457,13 +5421,13 @@
       {
         "title": "Clay Burst Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.72,
+        "usd": 3.74,
         "code": "sv2d"
       },
       {
         "title": "Snow Hazard Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.84,
+        "usd": 3.8,
         "code": "sv2p"
       },
       {
@@ -5481,13 +5445,13 @@
       {
         "title": "Triple Beat Booster Pack",
         "category": "Single booster pack",
-        "usd": 6.37,
+        "usd": 6.31,
         "code": "sv1a"
       },
       {
         "title": "Scarlet ex Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.93,
+        "usd": 3.95,
         "code": "sv1s"
       },
       {
@@ -5505,19 +5469,19 @@
       {
         "title": "Violet ex Booster Pack",
         "category": "Single booster pack",
-        "usd": 3.55,
+        "usd": 3.57,
         "code": "sv1v"
       },
       {
         "title": "VSTAR Universe Booster Box",
         "category": "Booster box",
-        "usd": 198.43,
+        "usd": 197.93,
         "code": "s12a"
       },
       {
         "title": "VSTAR Universe Booster Pack",
         "category": "Single booster pack",
-        "usd": 21.36,
+        "usd": 21.19,
         "code": "s12a"
       },
       {
@@ -5529,7 +5493,7 @@
       {
         "title": "Paradigm Trigger Booster Pack",
         "category": "Single booster pack",
-        "usd": 7.88,
+        "usd": 7.89,
         "code": "s12"
       },
       {
@@ -5541,7 +5505,7 @@
       {
         "title": "Incandescent Arcana Booster Box",
         "category": "Booster box",
-        "usd": 103.71,
+        "usd": 104.88,
         "code": "s11a"
       },
       {
@@ -5637,7 +5601,7 @@
       {
         "title": "VMAX Climax Booster Box",
         "category": "Booster box",
-        "usd": 225.41,
+        "usd": 223.61,
         "code": "s8b"
       },
       {
@@ -5691,7 +5655,7 @@
       {
         "title": "Eevee Heroes Booster Pack",
         "category": "Single booster pack",
-        "usd": 24.61,
+        "usd": 24.46,
         "code": "s6a"
       },
       {
@@ -5853,13 +5817,13 @@
       {
         "title": "Remix Bout Booster Pack",
         "category": "Single booster pack",
-        "usd": 17.4,
+        "usd": 17.77,
         "code": "sm11a"
       },
       {
         "title": "Miracle Twin Booster Pack",
         "category": "Single booster pack",
-        "usd": 25.0,
+        "usd": 27.5,
         "code": "sm11"
       },
       {
@@ -5918,7 +5882,7 @@
     ]
   },
   "usd_sgd": {
-    "fetched_at": 1795050285.7090304,
-    "value": 1.2896
+    "fetched_at": 1795161912.2475693,
+    "value": 1.2897
   }
 }
